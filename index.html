@@ -485,15 +485,21 @@
                     let touchEndY = 0;
                     if (isTouchDevice) {
                         item.addEventListener('touchstart', (e) => {
+                            // 如果点击的是输入框或按钮，不记录触摸位置
+                            if (e.target.closest('input, button, [contenteditable="true"]')) {
+                                return;
+                            }
                             touchStartY = e.touches[0].clientY;
                         }, { passive: true });
                         item.addEventListener('touchend', (e) => {
+                            // 如果点击的是输入框或按钮，不处理展开逻辑
+                            if (e.target.closest('input, button, [contenteditable="true"]')) {
+                                return;
+                            }
                             touchEndY = e.changedTouches[0].clientY;
                             if (Math.abs(touchEndY - touchStartY) < 10) {
-                                if (!e.target.closest('a, form, [contenteditable="true"], input, button')) {
-                                    e.preventDefault();
-                                    item.classList.toggle('expanded');
-                                }
+                                e.preventDefault();
+                                item.classList.toggle('expanded');
                             }
                         });
                     }
@@ -591,6 +597,15 @@
                             }, 100);
                         }
                     });
+                    
+                    // 确保可编辑区域能正常唤起键盘
+                    el.addEventListener('touchstart', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
+                    
+                    el.addEventListener('touchend', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
                 });
             };
 
@@ -617,6 +632,20 @@
                         button.classList.add('success');
                         button.textContent = '✓ 已添加';
                         setTimeout(() => loadPageData(true), 1000);
+                    });
+                    
+                    // 确保按钮能正常响应触摸
+                    const button = form.querySelector('.milestone-button');
+                    const input = form.querySelector('.milestone-input');
+                    
+                    [button, input].forEach(element => {
+                        element.addEventListener('touchstart', (e) => {
+                            e.stopPropagation();
+                        }, { passive: true });
+                        
+                        element.addEventListener('touchend', (e) => {
+                            e.stopPropagation();
+                        }, { passive: true });
                     });
                 });
             };
@@ -697,6 +726,15 @@
             // 移动端键盘优化
             const inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
             inputs.forEach(input => {
+                // 确保输入框能正常唤起键盘
+                input.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
+                
+                input.addEventListener('touchend', (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
+                
                 input.addEventListener('focus', () => {
                     if (window.innerWidth <= 768) {
                         setTimeout(() => {
