@@ -14,6 +14,7 @@
             --subtle-text-color: #6c757d;
             --border-color: #dee2e6;
             --primary-color: #0d6efd;
+            --success-color: #198754;
         }
 
         * {
@@ -45,6 +46,13 @@
             font-size: 1rem;
             color: var(--subtle-text-color);
             font-weight: 400;
+            margin-bottom: 1rem;
+        }
+        
+        .page-instructions {
+            font-size: 0.85rem;
+            color: var(--subtle-text-color);
+            font-style: italic;
         }
 
         .tabs-container {
@@ -97,7 +105,7 @@
             display: block;
         }
 
-        .tech-stack-container, .owner-view-container {
+        .tech-stack-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
             gap: 2rem;
@@ -137,7 +145,7 @@
              cursor: pointer;
         }
 
-        #roadmap-view .tech-item:hover, #owner-view .tech-item:hover {
+        .tech-item:hover {
             transform: translateY(-3px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
@@ -311,11 +319,15 @@
             padding: 0.375rem 0.75rem;
             border-radius: 0.375rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
         }
 
         .milestone-button:hover {
             background-color: #0b5ed7;
+        }
+        
+        .milestone-button.success {
+            background-color: var(--success-color);
         }
 
         /* Owner View Styles */
@@ -326,10 +338,9 @@
         .owner-group {
             break-inside: avoid;
             margin-bottom: 2rem;
-            padding: 1.25rem;
         }
         .owner-view-container .tech-item {
-             cursor: default;
+            cursor: default;
         }
         .owner-view-container .tech-item:hover {
              transform: none;
@@ -373,7 +384,7 @@
 <body>
     <header class="header-section">
         <h1>Molchip Software AI · 工作计划</h1>
-        <p class="page-subtitle">2025-07-04 last updated</p>
+        <p class="page-subtitle" id="last-updated"></p>
         <p class="page-instructions">提示: 点击卡片可展开/折叠进度，在详情中可添加新进度。</p>
     </header>
 
@@ -398,6 +409,7 @@
             const ownerContainer = document.querySelector('#owner-view .owner-view-container');
             const tabs = document.querySelectorAll('.tab-link');
             const tabContents = document.querySelectorAll('.tab-content');
+            const lastUpdatedEl = document.getElementById('last-updated');
             
             const SUPABASE_URL = 'https://ycwvpafcsffueunjstkz.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inljd3ZwYWZjc2ZmdWV1bmpzdGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2MTQ3NzQsImV4cCI6MjA2NzE5MDc3NH0.wtNaRHAwS8pkZg8D5PuKuIONL_jbua9OvJDqaScZGKc';
@@ -507,6 +519,10 @@
             
             const init = async () => {
                 try {
+                    const { data: metaData, error: metaError } = await supabase.from('meta').select('last_updated').eq('id', 1).single();
+                    if(metaError) throw metaError;
+                    lastUpdatedEl.textContent = `Last updated on ${new Date(metaData.last_updated).toLocaleDateString()}`;
+
                     const { data, error } = await supabase.from('projects').select('*').order('id');
                     if (error) throw error;
                     
@@ -516,9 +532,12 @@
                     document.querySelectorAll('.add-milestone-form').forEach(form => {
                         form.addEventListener('submit', async (e) => {
                             e.preventDefault();
+                            const button = form.querySelector('.milestone-button');
                             const input = form.querySelector('.milestone-input');
                             const text = input.value.trim();
                             if (!text) return;
+                            
+                            button.disabled = true;
 
                             const projectId = form.dataset.projectId;
                             const { data: projectData, error: fetchError } = await supabase
@@ -535,16 +554,23 @@
                             };
                             
                             const updatedMilestones = [...(projectData.milestones || []), newMilestone];
+                            const now = new Date().toISOString();
 
                             const { error: updateError } = await supabase
                                 .from('projects')
-                                .update({ milestones: updatedMilestones, last_updated: new Date().toISOString() })
+                                .update({ milestones: updatedMilestones, last_updated: now })
                                 .eq('id', projectId);
 
                             if (updateError) throw updateError;
                             
-                            // 重新加载以显示最新数据
-                            init();
+                            await supabase.from('meta').update({ last_updated: now }).eq('id', 1);
+
+                            button.classList.add('success');
+                            button.textContent = '✓ 已添加';
+
+                            setTimeout(() => {
+                                init(); // 重新加载以显示最新数据
+                            }, 1000);
                         });
                     });
 
