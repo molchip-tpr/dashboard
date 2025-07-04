@@ -13,6 +13,7 @@
             --card-text-color: #212529;
             --subtle-text-color: #6c757d;
             --border-color: #dee2e6;
+            --primary-color: #0d6efd;
         }
 
         * {
@@ -44,12 +45,6 @@
             font-size: 1rem;
             color: var(--subtle-text-color);
             font-weight: 400;
-            margin-bottom: 1rem;
-        }
-        
-        .page-instructions {
-            font-size: 0.9rem;
-            color: var(--subtle-text-color);
         }
 
         .tabs-container {
@@ -102,7 +97,7 @@
             display: block;
         }
 
-        .tech-stack-container {
+        .tech-stack-container, .owner-view-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
             gap: 2rem;
@@ -295,6 +290,34 @@
             color: var(--card-text-color);
         }
         
+        .add-milestone-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .milestone-input {
+            flex-grow: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .milestone-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .milestone-button:hover {
+            background-color: #0b5ed7;
+        }
+
         /* Owner View Styles */
         .owner-view-container {
             column-count: 3;
@@ -306,13 +329,15 @@
             padding: 1.25rem;
         }
         .owner-view-container .tech-item {
-            padding: 0;
+             cursor: default;
         }
-        
+        .owner-view-container .tech-item:hover {
+             transform: none;
+             box-shadow: none;
+        }
         .owner-view-container .tech-item .item-summary {
             padding: 0.6rem 0.8rem;
         }
-        
         .owner-view-container .tech-name {
             font-size: 0.85rem;
         }
@@ -349,7 +374,7 @@
     <header class="header-section">
         <h1>Molchip Software AI · 工作计划</h1>
         <p class="page-subtitle">2025-07-04 last updated</p>
-        <p class="page-instructions">提示: 点击卡片可展开/折叠进度，点击下方标签可切换视图。</p>
+        <p class="page-instructions">提示: 点击卡片可展开/折叠进度，在详情中可添加新进度。</p>
     </header>
 
     <div class="tabs-container">
@@ -365,36 +390,48 @@
             <div class="owner-view-container"></div>
         </div>
     </main>
-
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const roadmapContainer = document.querySelector('#roadmap-view .tech-stack-container');
             const ownerContainer = document.querySelector('#owner-view .owner-view-container');
             const tabs = document.querySelectorAll('.tab-link');
             const tabContents = document.querySelectorAll('.tab-content');
+            
+            const SUPABASE_URL = 'https://ycwvpafcsffueunjstkz.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inljd3ZwYWZjc2ZmdWV1bmpzdGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2MTQ3NzQsImV4cCI6MjA2NzE5MDc3NH0.wtNaRHAwS8pkZg8D5PuKuIONL_jbua9OvJDqaScZGKc';
+
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
             const createTechItemHTML = (item) => {
                 const statusTag = item.status ? `<div class="base-tag status-tag status-${item.status}">${item.status === 'done' ? '已完成' : '待开发'}</div>` : '';
                 const ownerTags = Array.isArray(item.owner) && item.owner.length > 0 ? item.owner.map(o => `<div class="base-tag owner-tag">${o}</div>`).join('') : '';
                 const sourceLink = item.source ? `<a href="${item.source}" target="_blank" class="base-tag source-link" title="项目源">GitHub</a>` : '';
 
-                const detailsHtml = (item.milestones && item.milestones.length > 0) || (Array.isArray(item.owner) && item.owner.length > 0) ? `
+                const detailsHtml = `
                     <div class="details">
                         <div class="details-content">
                             <div class="tags-container">${ownerTags}</div>
-                            ${item.milestones && item.milestones.length > 0 ? `
                             <ul class="timeline">
-                                ${item.milestones.map(m => `
-                                    <li class="timeline-item">
-                                        <div class="timeline-date">${m.date}</div>
-                                        <div class="timeline-text">${m.text}</div>
-                                    </li>`).join('')}
-                            </ul>` : ''}
+                                ${item.milestones && item.milestones.length > 0 ?
+                                    item.milestones.map(m => `
+                                        <li class="timeline-item">
+                                            <div class="timeline-date">${m.date}</div>
+                                            <div class="timeline-text">${m.text}</div>
+                                        </li>`).join('')
+                                    : '<li><div class="timeline-text">暂无进度记录</div></li>'
+                                }
+                            </ul>
+                            <form class="add-milestone-form" data-project-id="${item.id}">
+                                <input type="text" class="milestone-input" placeholder="添加新进度..." required>
+                                <button type="submit" class="milestone-button">添加</button>
+                            </form>
                         </div>
-                    </div>` : '';
+                    </div>`;
 
                 return `
-                    <div class="tech-item" data-has-details="${!!detailsHtml}">
+                    <div class="tech-item" data-has-details="true" data-project-id="${item.id}">
                         <div class="item-summary">
                             <div class="item-header">
                                 <div class="tech-name">${item.name} ${sourceLink}</div>
@@ -408,48 +445,49 @@
             };
             
             const addToggleListener = (item) => {
-                 if (item.dataset.hasDetails === 'true') {
-                    item.addEventListener('click', (e) => {
-                        if (e.target.tagName !== 'A') {
-                             item.classList.toggle('expanded');
-                        }
-                    });
-                }
+                 item.addEventListener('click', (e) => {
+                    if (!e.target.closest('a, form')) {
+                         item.classList.toggle('expanded');
+                    }
+                });
             }
 
             const buildRoadmapView = (data) => {
+                const groupedData = data.reduce((acc, item) => {
+                    (acc[item.category] = acc[item.category] || []).push(item);
+                    return acc;
+                }, {});
+
                 roadmapContainer.innerHTML = '';
-                data.forEach(layerData => {
+                for (const category in groupedData) {
                     const layer = document.createElement('div');
                     layer.className = 'stack-layer';
                     const itemsContainer = document.createElement('div');
                     itemsContainer.className = 'tech-items';
                     
-                    layerData.items.forEach(item => {
+                    groupedData[category].forEach(item => {
                         itemsContainer.insertAdjacentHTML('beforeend', createTechItemHTML(item));
                     });
                     
-                    layer.innerHTML = `<h2 class="layer-header">${layerData.title}</h2>`;
+                    layer.innerHTML = `<h2 class="layer-header">${category}</h2>`;
                     layer.appendChild(itemsContainer);
                     roadmapContainer.appendChild(layer);
-                });
+                }
                 roadmapContainer.querySelectorAll('.tech-item').forEach(addToggleListener);
             };
             
             const buildOwnerView = (data) => {
-                ownerContainer.innerHTML = '';
                 const ownerTasks = {};
-                data.forEach(layer => {
-                    layer.items.forEach(item => {
-                        if (item.owner && Array.isArray(item.owner)) {
-                            item.owner.forEach(ownerName => {
-                                if (!ownerTasks[ownerName]) ownerTasks[ownerName] = [];
-                                ownerTasks[ownerName].push({ ...item });
-                            });
-                        }
-                    });
+                data.forEach(item => {
+                    if (item.owner && Array.isArray(item.owner)) {
+                        item.owner.forEach(ownerName => {
+                            if (!ownerTasks[ownerName]) ownerTasks[ownerName] = [];
+                            ownerTasks[ownerName].push({ ...item });
+                        });
+                    }
                 });
 
+                ownerContainer.innerHTML = '';
                 Object.keys(ownerTasks).sort().forEach(ownerName => {
                     const group = document.createElement('div');
                     group.className = 'owner-group';
@@ -457,7 +495,7 @@
                     itemsContainer.className = 'tech-items';
                     
                     ownerTasks[ownerName].forEach(item => {
-                        itemsContainer.insertAdjacentHTML('beforeend', createTechItemHTML(item));
+                         itemsContainer.insertAdjacentHTML('beforeend', createTechItemHTML(item));
                     });
                     
                     group.innerHTML = `<h2 class="owner-name">${ownerName}</h2>`;
@@ -469,18 +507,52 @@
             
             const init = async () => {
                 try {
-                    const response = await fetch('data.json');
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const data = await response.json();
-
+                    const { data, error } = await supabase.from('projects').select('*').order('id');
+                    if (error) throw error;
+                    
                     buildRoadmapView(data);
                     buildOwnerView(data);
+                    
+                    document.querySelectorAll('.add-milestone-form').forEach(form => {
+                        form.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const input = form.querySelector('.milestone-input');
+                            const text = input.value.trim();
+                            if (!text) return;
+
+                            const projectId = form.dataset.projectId;
+                            const { data: projectData, error: fetchError } = await supabase
+                                .from('projects')
+                                .select('milestones')
+                                .eq('id', projectId)
+                                .single();
+
+                            if (fetchError) throw fetchError;
+
+                            const newMilestone = {
+                                date: new Date().toISOString().split('T')[0],
+                                text: text
+                            };
+                            
+                            const updatedMilestones = [...(projectData.milestones || []), newMilestone];
+
+                            const { error: updateError } = await supabase
+                                .from('projects')
+                                .update({ milestones: updatedMilestones, last_updated: new Date().toISOString() })
+                                .eq('id', projectId);
+
+                            if (updateError) throw updateError;
+                            
+                            // 重新加载以显示最新数据
+                            init();
+                        });
+                    });
 
                 } catch (error) {
                     console.error('Error fetching or parsing data:', error);
                     const errorContainer = document.querySelector('.tab-content.active');
                     if(errorContainer) {
-                        errorContainer.innerHTML = `<p style="color: red; text-align: center;">加载数据失败，请确保本地服务器正在运行，并且 data.json 文件存在且格式正确。</p>`;
+                        errorContainer.innerHTML = `<p style="color: red; text-align: center;">加载数据失败，请检查Supabase连接信息是否正确，以及数据库权限是否开放。</p>`;
                     }
                 }
             };
@@ -489,7 +561,6 @@
                 tab.addEventListener('click', () => {
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-                    
                     const target = document.getElementById(tab.dataset.tab);
                     tabContents.forEach(tc => tc.classList.remove('active'));
                     target.classList.add('active');
