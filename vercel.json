@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "destination": "/tech_stack_display.html"
+    }
+  ]
+} 
