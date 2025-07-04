@@ -1,8 +1,9 @@
 {
+  "builds": [
+    { "src": "data.json", "use": "@vercel/static" },
+    { "src": "tech_stack_display.html", "use": "@vercel/static" }
+  ],
   "rewrites": [
-    {
-      "source": "/:path*",
-      "destination": "/tech_stack_display.html"
-    }
+    { "source": "/(.*)", "destination": "/tech_stack_display.html" }
   ]
 } 
