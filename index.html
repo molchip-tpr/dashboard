@@ -2,7 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>Molchip Software AI · 工作计划</title>
     <style>
         :root {
@@ -24,6 +26,8 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* Login Modal Styles */
@@ -32,6 +36,7 @@
             background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
             align-items: center; z-index: 1000; backdrop-filter: blur(5px);
             opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+            padding: 1rem;
         }
         #login-modal.visible { opacity: 1; visibility: visible; }
         .login-box {
@@ -55,8 +60,10 @@
             border-radius: 0.5rem; background-color: var(--primary-color);
             color: white; font-size: 1rem; font-weight: 500; cursor: pointer;
             transition: background-color 0.2s, color 0.2s;
+            -webkit-appearance: none;
         }
         .login-button:hover { background-color: white; color: var(--primary-color); }
+        .login-button:active { transform: scale(0.98); }
         .login-error { color: var(--danger-color); margin-top: 1rem; font-size: 0.85rem; height: 1rem; }
         .login-box.error .login-input { animation: shake 0.5s; }
         @keyframes shake {
@@ -78,11 +85,20 @@
         .page-instructions {
             font-size: 0.85rem; color: var(--subtle-text-color); font-style: italic;
         }
-        .tabs-container { text-align: center; margin-bottom: 3rem; }
+        .tabs-container { 
+            text-align: center; 
+            margin-bottom: 3rem; 
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            z-index: 100;
+            padding: 1rem 0;
+        }
         .tab-link {
             background: none; border: none; color: var(--subtle-text-color); padding: 0.5rem 1rem;
             font-size: 0.9rem; font-weight: 500; cursor: pointer; position: relative;
             transition: color 0.2s ease-in-out;
+            -webkit-tap-highlight-color: transparent;
         }
         .tab-link:hover { color: var(--text-color); }
         .tab-link.active { color: var(--text-color); }
@@ -112,7 +128,7 @@
         }
         .tech-item[data-has-details="true"] { cursor: pointer; }
         .tech-item[data-has-details="true"]:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .item-summary { padding: 0.8rem 1rem; }
+        .item-summary { padding: 0.8rem 1rem; position: relative; }
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.25rem; }
         .tech-name { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
         .tech-desc { color: var(--subtle-text-color); font-size: 0.8rem; line-height: 1.4; }
@@ -132,7 +148,7 @@
         .source-link:hover { background-color: #ced4da; color: var(--card-text-color); border-color: #adb5bd; }
         
         .details { max-height: 0; overflow: hidden; transition: max-height 0.2s ease-out; }
-        .tech-item.expanded .details { max-height: 500px; transition: max-height 0.35s ease-in; }
+        .tech-item.expanded .details { max-height: 1000px; transition: max-height 0.35s ease-in; }
         .details-content { padding: 0.8rem 1rem 1rem; border-top: 1px solid var(--border-color); margin-top: 0.8rem; }
         .timeline { position: relative; list-style: none; padding-left: 1.5rem; margin-top: 0.75rem; }
         .timeline::before {
@@ -149,6 +165,7 @@
         .timeline-text {
             font-size: 0.8rem; color: var(--card-text-color); outline: none; padding: 2px 0;
             border-bottom: 1px solid transparent; transition: border-color 0.2s;
+            word-break: break-word;
         }
         .timeline-text:hover { border-bottom-color: var(--border-color); }
         .timeline-text:focus { border-bottom-color: var(--primary-color); background-color: #f0f6ff; }
@@ -157,24 +174,222 @@
         .milestone-input {
             flex-grow: 1; border: 1px solid var(--border-color); border-radius: 0.375rem;
             padding: 0.375rem 0.75rem; font-size: 0.8rem;
+            -webkit-appearance: none;
         }
         .milestone-button {
             background-color: var(--primary-color); color: white; border: none; padding: 0.375rem 0.75rem;
             border-radius: 0.375rem; cursor: pointer; transition: all 0.2s;
+            -webkit-appearance: none;
+            white-space: nowrap;
         }
         .milestone-button:hover { background-color: #333; }
+        .milestone-button:active { transform: scale(0.95); }
         .milestone-button.success { background-color: var(--success-color); }
 
         .owner-view-container { column-count: 3; column-gap: 2rem; }
         .owner-group { break-inside: avoid; margin-bottom: 2rem; }
 
-        @media (max-width: 1200px) { .owner-view-container { column-count: 2; } }
-        @media (max-width: 992px) { .tech-stack-container { grid-template-columns: 1fr; } }
+        /* 展开指示器（移动端） */
+        .expand-indicator {
+            display: none;
+        }
+
+        /* 移动端卡片交互提示 */
+        .tech-item[data-has-details="true"] {
+            position: relative;
+        }
+        
+        /* 移动端优化：使用微妙的视觉提示 */
         @media (max-width: 768px) {
-            body, #main-app { padding: 0 1.5rem; }
-            .header-section { padding: 3rem 1rem 2rem; }
-            .header-section h1 { font-size: 2rem; }
-            .owner-view-container { column-count: 1; }
+            .tech-item[data-has-details="true"] {
+                border-left: 3px solid transparent;
+                transition: all 0.2s ease;
+                cursor: pointer;
+            }
+            .tech-item[data-has-details="true"]:active {
+                border-left-color: var(--primary-color);
+                background-color: #f0f1f3;
+                transform: scale(0.98);
+            }
+            .tech-item[data-has-details="true"]:hover {
+                border-left-color: rgba(0,0,0,0.1);
+            }
+            .tech-item.expanded {
+                border-left-color: var(--primary-color);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) { 
+            .owner-view-container { column-count: 2; } 
+            #main-app { padding: 0 2rem; }
+        }
+        
+        @media (max-width: 992px) { 
+            .tech-stack-container { grid-template-columns: 1fr; }
+            #main-app { padding: 0 1.5rem; }
+        }
+        
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            #main-app { padding: 0 1rem; }
+            
+            .header-section { 
+                padding: 2rem 0.5rem 1.5rem; 
+            }
+            .header-section h1 { 
+                font-size: 1.75rem; 
+                margin-bottom: 0.3rem;
+            }
+            .page-subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 0.5rem;
+            }
+            .page-instructions {
+                font-size: 0.75rem;
+                padding: 0 1rem;
+            }
+            
+            .tabs-container {
+                margin-bottom: 2rem;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+            .tab-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.85rem;
+            }
+            
+            .tech-stack-container {
+                gap: 1rem;
+            }
+            
+            .stack-layer, .owner-group {
+                padding: 1rem;
+                border-radius: 0.5rem;
+            }
+            .layer-header, .owner-name {
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .tech-items {
+                gap: 0.5rem;
+            }
+            
+            .tech-item[data-has-details="true"]:hover {
+                transform: none;
+                box-shadow: none;
+            }
+            .tech-item[data-has-details="true"]:active {
+                background-color: #f0f1f3;
+            }
+            
+            .item-summary {
+                padding: 0.75rem;
+            }
+            .expand-indicator {
+                display: block;
+            }
+            
+            .tech-name {
+                font-size: 0.85rem;
+            }
+            .tech-desc {
+                font-size: 0.75rem;
+                margin-top: 0.25rem;
+            }
+            
+            .base-tag {
+                font-size: 0.65rem;
+                padding: 0.1rem 0.4rem;
+            }
+            
+            .details-content {
+                padding: 0.5rem 0.75rem 0.75rem;
+            }
+            
+            .timeline {
+                padding-left: 1.25rem;
+                margin-top: 0.5rem;
+            }
+            .timeline-item {
+                margin-bottom: 0.5rem;
+            }
+            .timeline-date {
+                font-size: 0.65rem;
+            }
+            .timeline-text {
+                font-size: 0.75rem;
+                line-height: 1.3;
+            }
+            
+            .add-milestone-form {
+                margin-top: 0.75rem;
+                gap: 0.25rem;
+            }
+            .milestone-input {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+            .milestone-button {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+            
+            .owner-view-container { 
+                column-count: 1; 
+            }
+            
+            .login-box {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+            .login-input, .login-button {
+                font-size: 0.9rem;
+                padding: 0.65rem;
+            }
+        }
+        
+        /* 小屏手机优化 */
+        @media (max-width: 400px) {
+            .header-section h1 {
+                font-size: 1.5rem;
+            }
+            .tab-link {
+                padding: 0.4rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            .tech-stack-container {
+                grid-template-columns: 1fr;
+            }
+            .stack-layer, .owner-group {
+                padding: 0.75rem;
+            }
+            .item-summary {
+                padding: 0.6rem;
+            }
+        }
+
+        /* 触摸设备优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .tech-item[data-has-details="true"]:hover {
+                transform: none;
+                box-shadow: none;
+            }
+            .source-link:hover {
+                background-color: #e9ecef;
+                color: var(--subtle-text-color);
+                border-color: transparent;
+            }
+            .login-button:hover {
+                background-color: var(--primary-color);
+                color: white;
+            }
+            .milestone-button:hover {
+                background-color: var(--primary-color);
+            }
         }
     </style>
 </head>
@@ -261,9 +476,30 @@
             };
             
             const addToggleListener = (item) => {
-                 if (item.dataset.hasDetails === 'true') {
+                if (item.dataset.hasDetails === 'true') {
+                    // 只绑定一次
+                    if (item._toggleBound) return;
+                    item._toggleBound = true;
+                    const isTouchDevice = 'ontouchstart' in window && navigator.maxTouchPoints > 0;
+                    let touchStartY = 0;
+                    let touchEndY = 0;
+                    if (isTouchDevice) {
+                        item.addEventListener('touchstart', (e) => {
+                            touchStartY = e.touches[0].clientY;
+                        }, { passive: true });
+                        item.addEventListener('touchend', (e) => {
+                            touchEndY = e.changedTouches[0].clientY;
+                            if (Math.abs(touchEndY - touchStartY) < 10) {
+                                if (!e.target.closest('a, form, [contenteditable="true"], input, button')) {
+                                    e.preventDefault();
+                                    item.classList.toggle('expanded');
+                                }
+                            }
+                        });
+                    }
+                    // 桌面端始终绑定click
                     item.addEventListener('click', (e) => {
-                        if (!e.target.closest('a, form, [contenteditable="true"]')) {
+                        if (!e.target.closest('a, form, [contenteditable="true"], input, button')) {
                             item.classList.toggle('expanded');
                         }
                     });
@@ -309,7 +545,20 @@
 
             const addEditableListeners = () => {
                  document.querySelectorAll('.timeline-text[contenteditable="true"]').forEach(el => {
-                    el.addEventListener('blur', async (e) => {
+                    // 防抖函数
+                    let debounceTimer;
+                    const debounce = (func, wait) => {
+                        return function executedFunction(...args) {
+                            const later = () => {
+                                clearTimeout(debounceTimer);
+                                func(...args);
+                            };
+                            clearTimeout(debounceTimer);
+                            debounceTimer = setTimeout(later, wait);
+                        };
+                    };
+                    
+                    const saveEdit = async () => {
                         const newText = el.textContent.trim();
                         const itemEl = el.closest('.tech-item');
                         const projectId = itemEl.dataset.projectId;
@@ -324,6 +573,22 @@
                             await supabase.from('projects').update({ milestones: updatedMilestones, last_updated: now }).eq('id', projectId);
                             await supabase.from('meta').update({ last_updated: now }).eq('id', 1);
                             lastUpdatedEl.textContent = `Last updated on ${new Date(now).toLocaleDateString()}`;
+                        }
+                    };
+                    
+                    // 使用防抖处理保存
+                    el.addEventListener('blur', debounce(saveEdit, 500));
+                    
+                    // 移动端优化：点击时全选文本
+                    el.addEventListener('focus', () => {
+                        if (window.innerWidth <= 768) {
+                            setTimeout(() => {
+                                const range = document.createRange();
+                                range.selectNodeContents(el);
+                                const sel = window.getSelection();
+                                sel.removeAllRanges();
+                                sel.addRange(range);
+                            }, 100);
                         }
                     });
                 });
@@ -416,6 +681,28 @@
                     const target = document.getElementById(tab.dataset.tab);
                     tabContents.forEach(tc => tc.classList.remove('active'));
                     target.classList.add('active');
+                    
+                    // 移动端优化：切换标签后滚动到顶部
+                    if (window.innerWidth <= 768) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+            });
+
+            // 优化移动端滚动性能
+            if ('ontouchstart' in window) {
+                document.addEventListener('touchmove', () => {}, { passive: true });
+            }
+
+            // 移动端键盘优化
+            const inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    if (window.innerWidth <= 768) {
+                        setTimeout(() => {
+                            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                    }
                 });
             });
 
