@@ -1,0 +1,210 @@
+[
+  {
+    "title": "客户生态",
+    "items": [
+      {
+        "name": "nnp3xx 工具链/驱动支持",
+        "description": "核心工具链和驱动支持",
+        "owner": ["张三", "李四"],
+        "status": "done",
+        "milestones": [{"date": "2024-06-15", "text": "完成v1驱动适配"}]
+      },
+      {
+        "name": "FY01/FY02 海康",
+        "description": "MC6630/MC6650, 人车/暗光检测",
+        "owner": ["李四"],
+        "status": "done",
+        "milestones": [{"date": "2024-05-20", "text": "交付暗光检测模型"}]
+      },
+      {
+        "name": "MC6670 宇视",
+        "description": "人车/周界, 人脸跟踪/识别",
+        "owner": ["王五"],
+        "status": "done",
+        "milestones": [{"date": "2024-06-30", "text": "完成人脸识别功能交付"}]
+      },
+      {
+        "name": "MC6630 宇视",
+        "description": "人脸跟踪",
+        "owner": ["王五"],
+        "status": "dev",
+        "milestones": [{"date": "2024-07-10", "text": "启动跟踪算法优化"}]
+      },
+      {
+        "name": "XC01 新大陆",
+        "description": "二维码/条码检测, OCR",
+        "owner": ["赵六"],
+        "status": "done",
+        "milestones": [{"date": "2024-04-10", "text": "OCR模型验收"}]
+      },
+      {
+        "name": "XC01 萤石",
+        "description": "双目深度估计, 回声消除",
+        "owner": ["孙七"],
+        "status": "dev",
+        "milestones": [{"date": "2024-07-01", "text": "回声消除算法PoC"}]
+      },
+      {
+        "name": "XC01 旷明",
+        "description": "电梯危险物检测, 超分辨率",
+        "owner": ["周八"],
+        "status": "dev",
+        "milestones": [{"date": "2024-06-25", "text": "超分辨率模型选型"}]
+      },
+      {
+        "name": "XC01 海康 UVC",
+        "description": "黑白板检测, 手势识别, 人形跟随",
+        "owner": ["吴九", "张三"],
+        "status": "dev"
+      },
+      {
+        "name": "XH01 旷明",
+        "description": "语音唤醒",
+        "owner": ["郑十"],
+        "status": "dev",
+        "milestones": [{"date": "2024-07-15", "text": "远场唤醒方案评审"}]
+      }
+    ]
+  },
+  {
+    "title": "自研生态",
+    "items": [
+      {
+        "name": "nnp3xx IP 研发",
+        "description": "支持 TPR",
+        "status": "done",
+        "owner": ["核心团队"],
+        "milestones": [
+          {"date": "2024-03-10", "text": "完成架构设计"},
+          {"date": "2024-05-22", "text": "后端开发完成"},
+          {"date": "2024-06-30", "text": "通过初步测试"}
+        ]
+      },
+      {
+        "name": "超级编码",
+        "description": "分割->感知->语义",
+        "status": "dev",
+        "owner": ["算法组"],
+        "milestones": [
+          {"date": "2024-07-01", "text": "项目启动"}
+        ]
+      },
+      {
+        "name": "语义指导模式",
+        "description": "新一代语义理解技术",
+        "status": "dev",
+        "owner": ["算法组"],
+        "milestones": [{"date": "2024-08-01", "text": "技术预研"}]
+      },
+      {
+        "name": "模型结构化剪枝",
+        "description": "优化模型结构, 提升性能",
+        "status": "done",
+        "source": "https://github.com/molchip-tpr/tutorial_cspdarknet_classification",
+        "owner": ["工具链组"],
+         "milestones": [
+          {"date": "2024-04-15", "text": "v1.0 发布"},
+          {"date": "2024-06-20", "text": "v1.2 性能优化"}
+        ]
+      },
+      {
+        "name": "OVD",
+        "description": "YoloWorld 方案",
+        "status": "done",
+        "source": "https://github.com/molchip-tpr/tutorial_yolov8_object_detection",
+        "owner": ["应用组"],
+        "milestones": [{"date": "2024-05-30", "text": "完成模型部署"}]
+      },
+      {
+        "name": "编码损失修复",
+        "description": "提升编码质量",
+        "status": "dev",
+        "owner": ["算法组"],
+        "milestones": [{"date": "2024-07-20", "text": "确定技术方案"}]
+      },
+      {
+        "name": "暗光增强",
+        "description": "低光照环境下的图像增强",
+        "status": "dev",
+        "owner": ["ISP组"],
+        "milestones": [{"date": "2024-07-05", "text": "完成数据集收集"}]
+      },
+      {
+        "name": "视频防抖",
+        "description": "视频稳定技术",
+        "status": "dev",
+        "owner": ["ISP组"]
+      },
+      {
+        "name": "AISP",
+        "description": "基于AI的图像ISP技术",
+        "status": "dev",
+        "owner": ["ISP组"]
+      }
+    ]
+  },
+  {
+    "title": "公共基础",
+    "items": [
+      {
+        "name": "基础开发环境文档",
+        "description": "开发环境配置指南",
+        "owner": ["架构组"],
+        "status": "done",
+        "milestones": [{"date": "2024-01-20", "text": "文档初始化"}]
+      },
+      {
+        "name": "开发板 SDK 文档",
+        "description": "SDK 环境搭建与源码编译指南",
+        "owner": ["SDK团队"],
+        "status": "done",
+        "milestones": [{"date": "2024-03-15", "text": "发布 v2 SDK 文档"}]
+      },
+      {
+        "name": "开发板 Python 调试工具",
+        "description": "Python 调试环境",
+        "owner": ["工具链组"],
+        "status": "done"
+      },
+      {
+        "name": "nnp3xx 工具链",
+        "description": "文档, 开发环境与示例代码",
+        "owner": ["工具链组"],
+        "status": "done"
+      },
+      {
+        "name": "VDSP 工具链",
+        "description": "文档, 开发环境与示例代码",
+        "owner": ["工具链组"],
+        "status": "done"
+      },
+      {
+        "name": "项目规范",
+        "description": "代码, 目录与文档规范",
+        "owner": ["架构组"],
+        "status": "dev",
+        "milestones": [{"date": "2024-07-25", "text": "草案评审"}]
+      },
+      {
+        "name": "典型场景示例",
+        "description": "Sample Code + Codebook",
+        "source": "https://github.com/orgs/molchip-tpr/repositories",
+        "owner": ["应用组"],
+        "status": "dev",
+        "milestones": [{"date": "2024-08-10", "text": "完成3个典型场景编码"}]
+      },
+      {
+        "name": "Agent 环境使用指南",
+        "description": "Agent 平台操作手册",
+        "owner": ["平台组"],
+        "status": "done"
+      },
+      {
+        "name": "SE02 服务器使用文档",
+        "description": "服务器部署与维护",
+        "owner": ["平台组"],
+        "status": "done"
+      }
+    ]
+  }
+] 

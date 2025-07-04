@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molchip Software AI · 工作计划</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg-color: #ffffff;
+            --inner-card-bg-color: #f8f9fa;
+            --text-color: #f8f9fa;
+            --card-text-color: #212529;
+            --subtle-text-color: #6c757d;
+            --border-color: #dee2e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 0 4rem;
+        }
+
+        .header-section {
+            text-align: center;
+            padding: 5rem 1rem 2rem;
+        }
+
+        .header-section h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            color: var(--subtle-text-color);
+            font-weight: 400;
+            margin-bottom: 1rem;
+        }
+        
+        .page-instructions {
+            font-size: 0.9rem;
+            color: var(--subtle-text-color);
+        }
+
+        .tabs-container {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .tab-link {
+            background: none;
+            border: none;
+            color: var(--subtle-text-color);
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s ease-in-out;
+        }
+        
+        .tab-link:hover {
+            color: var(--text-color);
+        }
+
+        .tab-link.active {
+            color: var(--text-color);
+        }
+
+        .tab-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40%;
+            height: 2px;
+            background-color: var(--text-color);
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-bottom: 5rem;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        .tech-stack-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .stack-layer, .owner-group {
+            background-color: var(--card-bg-color);
+            color: var(--card-text-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .layer-header, .owner-name {
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .tech-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .tech-item {
+            background-color: var(--inner-card-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .tech-item[data-has-details="true"] {
+             cursor: pointer;
+        }
+
+        #roadmap-view .tech-item:hover, #owner-view .tech-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .item-summary {
+            padding: 0.8rem 1rem;
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .tech-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .tech-desc {
+            color: var(--subtle-text-color);
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+        
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            margin-top: 0.75rem;
+        }
+
+        .base-tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .status-tag {
+            white-space: nowrap;
+        }
+
+        .status-dev {
+            background-color: #fff0c7;
+            color: #996a00;
+        }
+
+        .status-done {
+            background-color: #d1f7e5;
+            color: #0d6b42;
+        }
+        
+        .owner-tag {
+            background-color: #e9ecef;
+            color: var(--subtle-text-color);
+        }
+        
+        .source-link {
+            background-color: #e9ecef;
+            color: var(--subtle-text-color);
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .source-link:hover {
+            background-color: #ced4da;
+            color: var(--card-text-color);
+            border-color: #adb5bd;
+        }
+        
+        .details {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.25s ease-out;
+        }
+        
+        .details > .details-content {
+             overflow: hidden;
+        }
+
+        .tech-item.expanded .details {
+            grid-template-rows: 1fr;
+             transition-duration: 0.35s;
+        }
+        
+        .details-content {
+            padding: 0.8rem 1rem 1rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 0.8rem;
+        }
+        
+        .timeline {
+            position: relative;
+            list-style: none;
+            padding-left: 1.5rem;
+            margin-top: 0.75rem;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0.25rem;
+            left: 0.3rem;
+            bottom: 0.25rem;
+            width: 2px;
+            background-color: #e9ecef;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 0.75rem;
+        }
+        
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.3rem;
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background-color: #adb5bd;
+            border: 2px solid var(--inner-card-bg-color);
+        }
+        
+        .timeline-date {
+            font-size: 0.7rem;
+            color: var(--subtle-text-color);
+            margin-bottom: 0.1rem;
+        }
+        
+        .timeline-text {
+            font-size: 0.8rem;
+            color: var(--card-text-color);
+        }
+        
+        /* Owner View Styles */
+        .owner-view-container {
+            column-count: 3;
+            column-gap: 2rem;
+        }
+        .owner-group {
+            break-inside: avoid;
+            margin-bottom: 2rem;
+            padding: 1.25rem;
+        }
+        .owner-view-container .tech-item {
+            padding: 0;
+        }
+        
+        .owner-view-container .tech-item .item-summary {
+            padding: 0.6rem 0.8rem;
+        }
+        
+        .owner-view-container .tech-name {
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 1200px) {
+            .owner-view-container {
+                column-count: 2;
+            }
+        }
+
+        @media (max-width: 992px) {
+             .tech-stack-container {
+                grid-template-columns: 1fr;
+             }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 0 1.5rem;
+            }
+            .header-section {
+                padding: 3rem 1rem 2rem;
+            }
+            .header-section h1 {
+                font-size: 2rem;
+            }
+            .owner-view-container {
+                column-count: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-section">
+        <h1>Molchip Software AI · 工作计划</h1>
+        <p class="page-subtitle">2025-07-04 last updated</p>
+        <p class="page-instructions">提示: 点击卡片可展开/折叠进度，点击下方标签可切换视图。</p>
+    </header>
+
+    <div class="tabs-container">
+        <button class="tab-link active" data-tab="roadmap-view">架构视图</button>
+        <button class="tab-link" data-tab="owner-view">负责人视图</button>
+    </div>
+
+    <main class="main-content">
+        <div id="roadmap-view" class="tab-content active">
+            <div class="tech-stack-container"></div>
+        </div>
+        <div id="owner-view" class="tab-content">
+            <div class="owner-view-container"></div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const roadmapContainer = document.querySelector('#roadmap-view .tech-stack-container');
+            const ownerContainer = document.querySelector('#owner-view .owner-view-container');
+            const tabs = document.querySelectorAll('.tab-link');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            const createTechItemHTML = (item) => {
+                const statusTag = item.status ? `<div class="base-tag status-tag status-${item.status}">${item.status === 'done' ? '已完成' : '待开发'}</div>` : '';
+                const ownerTags = Array.isArray(item.owner) && item.owner.length > 0 ? item.owner.map(o => `<div class="base-tag owner-tag">${o}</div>`).join('') : '';
+                const sourceLink = item.source ? `<a href="${item.source}" target="_blank" class="base-tag source-link" title="项目源">GitHub</a>` : '';
+
+                const detailsHtml = (item.milestones && item.milestones.length > 0) || (Array.isArray(item.owner) && item.owner.length > 0) ? `
+                    <div class="details">
+                        <div class="details-content">
+                            <div class="tags-container">${ownerTags}</div>
+                            ${item.milestones && item.milestones.length > 0 ? `
+                            <ul class="timeline">
+                                ${item.milestones.map(m => `
+                                    <li class="timeline-item">
+                                        <div class="timeline-date">${m.date}</div>
+                                        <div class="timeline-text">${m.text}</div>
+                                    </li>`).join('')}
+                            </ul>` : ''}
+                        </div>
+                    </div>` : '';
+
+                return `
+                    <div class="tech-item" data-has-details="${!!detailsHtml}">
+                        <div class="item-summary">
+                            <div class="item-header">
+                                <div class="tech-name">${item.name} ${sourceLink}</div>
+                                ${statusTag}
+                            </div>
+                            <div class="tech-desc">${item.description}</div>
+                        </div>
+                        ${detailsHtml}
+                    </div>
+                `;
+            };
+            
+            const addToggleListener = (item) => {
+                 if (item.dataset.hasDetails === 'true') {
+                    item.addEventListener('click', (e) => {
+                        if (e.target.tagName !== 'A') {
+                             item.classList.toggle('expanded');
+                        }
+                    });
+                }
+            }
+
+            const buildRoadmapView = (data) => {
+                roadmapContainer.innerHTML = '';
+                data.forEach(layerData => {
+                    const layer = document.createElement('div');
+                    layer.className = 'stack-layer';
+                    const itemsContainer = document.createElement('div');
+                    itemsContainer.className = 'tech-items';
+                    
+                    layerData.items.forEach(item => {
+                        itemsContainer.insertAdjacentHTML('beforeend', createTechItemHTML(item));
+                    });
+                    
+                    layer.innerHTML = `<h2 class="layer-header">${layerData.title}</h2>`;
+                    layer.appendChild(itemsContainer);
+                    roadmapContainer.appendChild(layer);
+                });
+                roadmapContainer.querySelectorAll('.tech-item').forEach(addToggleListener);
+            };
+            
+            const buildOwnerView = (data) => {
+                ownerContainer.innerHTML = '';
+                const ownerTasks = {};
+                data.forEach(layer => {
+                    layer.items.forEach(item => {
+                        if (item.owner && Array.isArray(item.owner)) {
+                            item.owner.forEach(ownerName => {
+                                if (!ownerTasks[ownerName]) ownerTasks[ownerName] = [];
+                                ownerTasks[ownerName].push({ ...item });
+                            });
+                        }
+                    });
+                });
+
+                Object.keys(ownerTasks).sort().forEach(ownerName => {
+                    const group = document.createElement('div');
+                    group.className = 'owner-group';
+                    const itemsContainer = document.createElement('div');
+                    itemsContainer.className = 'tech-items';
+                    
+                    ownerTasks[ownerName].forEach(item => {
+                        itemsContainer.insertAdjacentHTML('beforeend', createTechItemHTML(item));
+                    });
+                    
+                    group.innerHTML = `<h2 class="owner-name">${ownerName}</h2>`;
+                    group.appendChild(itemsContainer);
+                    ownerContainer.appendChild(group);
+                });
+                ownerContainer.querySelectorAll('.tech-item').forEach(addToggleListener);
+            };
+            
+            const init = async () => {
+                try {
+                    const response = await fetch('data.json');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+
+                    buildRoadmapView(data);
+                    buildOwnerView(data);
+
+                } catch (error) {
+                    console.error('Error fetching or parsing data:', error);
+                    const errorContainer = document.querySelector('.tab-content.active');
+                    if(errorContainer) {
+                        errorContainer.innerHTML = `<p style="color: red; text-align: center;">加载数据失败，请确保本地服务器正在运行，并且 data.json 文件存在且格式正确。</p>`;
+                    }
+                }
+            };
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    const target = document.getElementById(tab.dataset.tab);
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    target.classList.add('active');
+                });
+            });
+
+            init();
+        });
+    </script>
+</body>
+</html> 
