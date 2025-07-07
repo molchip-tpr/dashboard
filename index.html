@@ -168,13 +168,109 @@
             border-radius: 50%; background-color: #adb5bd; border: 2px solid var(--inner-card-bg-color);
         }
         .timeline-date { font-size: 0.7rem; color: var(--subtle-text-color); margin-bottom: 0.1rem; }
+        .timeline-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+        }
         .timeline-text {
             font-size: 0.8rem; color: var(--card-text-color); outline: none; padding: 2px 0;
             border-bottom: 1px solid transparent; transition: border-color 0.2s;
             word-break: break-word;
+            flex-grow: 1;
         }
         .timeline-text:hover { border-bottom-color: var(--border-color); }
         .timeline-text:focus { border-bottom-color: var(--primary-color); background-color: #f0f6ff; }
+        
+        .milestone-delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .milestone-delete-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+            background-color: #b91c1c;
+        }
+        .milestone-delete-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* 移动端触摸优化 - milestone删除按钮 */
+        @media (hover: none) and (pointer: coarse) {
+            .milestone-delete-btn:hover {
+                opacity: 0.7;
+                transform: none;
+                background-color: var(--danger-color);
+            }
+            
+            .milestone-delete-btn:active {
+                opacity: 1;
+                transform: scale(1.1);
+                background-color: #b91c1c;
+            }
+        }
+        
+        /* 项目删除按钮样式 */
+        .project-delete-container {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .project-delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            width: 100%;
+            justify-content: center;
+            font-weight: 500;
+        }
+        
+        .project-delete-btn:hover {
+            background-color: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+        }
+        
+        .project-delete-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(220, 53, 69, 0.3);
+        }
+        
+        /* 移动端项目删除按钮优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .project-delete-btn:hover {
+                background-color: var(--danger-color);
+                transform: none;
+                box-shadow: none;
+            }
+            
+            .project-delete-btn:active {
+                background-color: #b91c1c;
+                transform: scale(0.98);
+            }
+        }
         
         .add-milestone-form { display: flex; gap: 0.5rem; margin-top: 1rem; }
         .milestone-input {
@@ -294,6 +390,22 @@
             .timeline-text {
                 font-size: 0.75rem;
                 line-height: 1.3;
+            }
+            
+            .milestone-delete-btn {
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+            }
+            
+            .project-delete-container {
+                margin-top: 0.5rem;
+                padding-top: 0.5rem;
+            }
+            
+            .project-delete-btn {
+                padding: 0.35rem 0.6rem;
+                font-size: 0.7rem;
             }
             
             .add-milestone-form {
@@ -1094,19 +1206,7 @@
                     }
                 },
                 
-                async deleteProject(projectId) {
-                    if (!confirm('确定要删除这个项目吗？')) return;
-                    
-                    try {
-                        await supabase.from('projects').delete().eq('id', projectId);
-                        await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
-                        showSuccessToast('项目删除成功');
-                        await loadPageData();
-                    } catch (error) {
-                        console.error('删除失败:', error);
-                        alert('删除失败，请重试');
-                    }
-                },
+
                 
 
                 
@@ -1167,6 +1267,105 @@
                         console.error('更新状态失败:', error);
                         alert('状态更新失败，请重试');
                     }
+                },
+                
+                async clearAllMilestones() {
+                    if (!confirm('确定要清除所有项目的进度记录吗？此操作不可恢复！')) {
+                        return;
+                    }
+                    
+                    try {
+                        // 获取所有项目
+                        const { data: projects, error: fetchError } = await supabase
+                            .from('projects')
+                            .select('id');
+                        
+                        if (fetchError) throw fetchError;
+                        
+                        // 清空所有项目的 milestones
+                        for (const project of projects) {
+                            await supabase
+                                .from('projects')
+                                .update({ 
+                                    milestones: [],
+                                    last_updated: new Date().toISOString()
+                                })
+                                .eq('id', project.id);
+                        }
+                        
+                        await supabase.from('meta').update({ 
+                            last_updated: new Date().toISOString() 
+                        }).eq('id', 1);
+                        
+                        showSuccessToast('所有进度记录已清除');
+                        await loadPageData();
+                    } catch (error) {
+                        console.error('清除进度记录失败:', error);
+                        alert('清除失败，请重试');
+                    }
+                },
+                
+                async deleteMilestone(projectId, milestoneIndex) {
+                    try {
+                        // 获取当前项目的milestones
+                        const { data: projectData, error: fetchError } = await supabase
+                            .from('projects')
+                            .select('milestones')
+                            .eq('id', projectId)
+                            .single();
+                        
+                        if (fetchError) throw fetchError;
+                        
+                        const updatedMilestones = [...(projectData.milestones || [])];
+                        // 删除指定索引的milestone
+                        updatedMilestones.splice(milestoneIndex, 1);
+                        
+                        // 更新数据库
+                        await supabase
+                            .from('projects')
+                            .update({ 
+                                milestones: updatedMilestones,
+                                last_updated: new Date().toISOString()
+                            })
+                            .eq('id', projectId);
+                        
+                        await supabase.from('meta').update({ 
+                            last_updated: new Date().toISOString() 
+                        }).eq('id', 1);
+                        
+                        showSuccessToast('进度记录已删除');
+                        await loadPageData();
+                    } catch (error) {
+                        console.error('删除进度记录失败:', error);
+                        alert('删除失败，请重试');
+                    }
+                },
+                
+                async deleteProject(projectId) {
+                    // 获取项目信息用于确认提示
+                    const project = allProjects.find(p => p.id == projectId);
+                    const projectName = project ? project.name : '此项目';
+                    
+                    if (!confirm(`确定要删除项目"${projectName}"吗？此操作不可恢复！`)) {
+                        return;
+                    }
+                    
+                    try {
+                        await supabase
+                            .from('projects')
+                            .delete()
+                            .eq('id', projectId);
+                        
+                        await supabase.from('meta').update({ 
+                            last_updated: new Date().toISOString() 
+                        }).eq('id', 1);
+                        
+                        showSuccessToast(`项目"${projectName}"已删除`);
+                        await loadPageData();
+                    } catch (error) {
+                        console.error('删除项目失败:', error);
+                        alert('删除项目失败，请重试');
+                    }
                 }
             };
             
@@ -1205,7 +1404,10 @@
                                     item.milestones.map((m, index) => `
                                         <li class="timeline-item">
                                             <div class="timeline-date">${m.date}</div>
-                                            <div class="timeline-text" contenteditable="true" data-milestone-index="${index}">${m.text}</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-text" contenteditable="true" data-milestone-index="${index}">${m.text}</div>
+                                                ${isEditMode ? `<button class="milestone-delete-btn" onclick="event.stopPropagation(); EditManager.deleteMilestone(${item.id}, ${index})" title="删除此进度">×</button>` : ''}
+                                            </div>
                                         </li>`).join('')
                                     : '<li><div class="timeline-text">暂无进度记录</div></li>'
                                 }
@@ -1217,7 +1419,10 @@
                         </div>
                     </div>`;
 
-                return `<div class="tech-item" data-has-details="true" data-project-id="${item.id}"><div class="item-summary"><div class="item-header"><div class="tech-name editable-title">${item.name} ${sourceLink}</div>${statusTag}</div><div class="tech-desc editable-title">${item.description}</div></div>${detailsHtml}</div>`;
+                // 项目删除按钮（仅在编辑模式下显示）
+                const deleteBtn = isEditMode ? `<div class="project-delete-container"><button class="project-delete-btn" onclick="event.stopPropagation(); EditManager.deleteProject(${item.id})" title="删除项目">🗑️ 删除项目</button></div>` : '';
+                
+                return `<div class="tech-item" data-has-details="true" data-project-id="${item.id}"><div class="item-summary"><div class="item-header"><div class="tech-name editable-title">${item.name} ${sourceLink}</div>${statusTag}</div><div class="tech-desc editable-title">${item.description}</div>${deleteBtn}</div>${detailsHtml}</div>`;
             };
             
             const addToggleListener = (item) => {
@@ -1238,7 +1443,7 @@
                     if (isTouchDevice) {
                         item.addEventListener('touchstart', (e) => {
                             // 如果点击的是输入框、按钮或可编辑元素，不记录触摸位置
-                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag')) {
+                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag, .project-delete-btn')) {
                                 return;
                             }
                             touchStartY = e.touches[0].clientY;
@@ -1246,7 +1451,7 @@
                         
                         item.addEventListener('touchend', (e) => {
                             // 如果点击的是输入框、按钮或可编辑元素，不处理展开逻辑
-                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag')) {
+                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag, .project-delete-btn')) {
                                 return;
                             }
                             touchEndY = e.changedTouches[0].clientY;
@@ -1260,7 +1465,7 @@
                     // 桌面端始终绑定click
                     item.addEventListener('click', (e) => {
                         // 检查是否点击了不应该触发展开的元素
-                        if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag')) {
+                        if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag, .project-delete-btn')) {
                             return;
                         }
                         item.classList.toggle('expanded');
@@ -1484,6 +1689,28 @@
                         e.stopPropagation();
                     }, { passive: true });
                 });
+                
+                // 为删除按钮添加触摸事件处理
+                document.querySelectorAll('.milestone-delete-btn').forEach(btn => {
+                    btn.addEventListener('touchstart', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
+                    
+                    btn.addEventListener('touchend', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
+                });
+                
+                // 为项目删除按钮添加触摸事件处理
+                document.querySelectorAll('.project-delete-btn').forEach(btn => {
+                    btn.addEventListener('touchstart', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
+                    
+                    btn.addEventListener('touchend', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
+                });
             };
 
             const addMilestoneListeners = () => {
@@ -1538,6 +1765,28 @@
                             e.stopPropagation();
                         }, { passive: true });
                     });
+                });
+                
+                // 为删除按钮添加触摸事件处理
+                document.querySelectorAll('.milestone-delete-btn').forEach(btn => {
+                    btn.addEventListener('touchstart', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
+                    
+                    btn.addEventListener('touchend', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
+                });
+                
+                // 为项目删除按钮添加触摸事件处理
+                document.querySelectorAll('.project-delete-btn').forEach(btn => {
+                    btn.addEventListener('touchstart', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
+                    
+                    btn.addEventListener('touchend', (e) => {
+                        e.stopPropagation();
+                    }, { passive: true });
                 });
             };
             
