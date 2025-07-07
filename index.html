@@ -146,6 +146,41 @@
         .status-tag { white-space: nowrap; }
         .status-dev { background-color: #fff0c7; color: #996a00; }
         .status-done { background-color: #d1f7e5; color: #0d6b42; }
+        
+        /* 编辑模式下有GitHub链接的项目卡片样式 */
+        .edit-mode .tech-item.has-github {
+            background: linear-gradient(135deg, #d1f7e5 0%, #e8f5e8 100%);
+            border: 2px solid #0d6b42;
+            box-shadow: 0 2px 8px rgba(13, 107, 66, 0.15);
+        }
+        
+        .edit-mode .tech-item.has-github .item-summary {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+        
+        .edit-mode .tech-item.has-github .tech-name {
+            color: #0d6b42;
+            font-weight: 600;
+        }
+        
+        .edit-mode .tech-item.has-github .source-link {
+            background-color: #0d6b42 !important;
+            color: white !important;
+            animation: github-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes github-glow {
+            from { 
+                box-shadow: 0 0 5px rgba(13, 107, 66, 0.5);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 0 10px rgba(13, 107, 66, 0.8);
+                transform: scale(1.02);
+            }
+        }
         .owner-tag { background-color: #e9ecef; color: var(--subtle-text-color); }
         .source-link {
             background-color: #e9ecef; color: var(--subtle-text-color); text-decoration: none;
@@ -880,6 +915,59 @@
             }
         }
         
+        /* Loading模态框样式 */
+        .loading-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-modal.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        .loading-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: loading-spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+
+        .loading-text {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        @keyframes loading-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
             .create-modal-content {
                 padding: 1.5rem;
@@ -889,6 +977,26 @@
                 bottom: 7rem;
                 right: 1rem;
                 max-width: calc(100vw - 2rem);
+            }
+            
+            .loading-content {
+                margin: 0 1rem;
+                min-width: auto;
+                max-width: calc(100vw - 2rem);
+            }
+            
+            /* 移动端GitHub链接项目样式调整 */
+            .edit-mode .tech-item.has-github {
+                border-width: 1px;
+                margin-bottom: 0.75rem;
+            }
+            
+            .edit-mode .tech-item.has-github .item-summary {
+                padding: 0.5rem;
+            }
+            
+            .edit-mode .tech-item.has-github .source-link {
+                animation: none; /* 移动端禁用动画，提升性能 */
             }
         }
     </style>
@@ -901,6 +1009,13 @@
                 <button type="submit" class="login-button">进 入</button>
                 <p class="login-error" id="login-error"></p>
             </form>
+        </div>
+    </div>
+
+    <div id="loading-modal" class="loading-modal">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">正在加载页面...</p>
         </div>
     </div>
 
@@ -1006,6 +1121,7 @@
             const loginForm = document.getElementById('login-form');
             const passwordInput = document.getElementById('password-input');
             const loginError = document.getElementById('login-error');
+            const loadingModal = document.getElementById('loading-modal');
             const mainApp = document.getElementById('main-app');
             
             const roadmapContainer = document.querySelector('#roadmap-view .tech-stack-container');
@@ -1214,18 +1330,84 @@
                     const newLink = prompt('请输入GitHub链接：', currentLink || '');
                     if (newLink === null) return; // 用户取消
                     
+                    const trimmedLink = newLink.trim() || null;
+                    
+                    // 更新内存数据
+                    const project = allProjects.find(p => p.id == projectId);
+                    if (!project) return;
+                    
+                    const oldLink = project.source;
+                    project.source = trimmedLink;
+                    
+                    // 立即更新UI - 更新所有相关的GitHub链接
+                    const projectElements = document.querySelectorAll(`[data-project-id="${projectId}"]`);
+                    projectElements.forEach(projectEl => {
+                        // 更新has-github CSS类
+                        if (trimmedLink) {
+                            projectEl.classList.add('has-github');
+                        } else {
+                            projectEl.classList.remove('has-github');
+                        }
+                        
+                        const techName = projectEl.querySelector('.tech-name');
+                        if (techName) {
+                            // 移除旧的GitHub链接
+                            const oldLinks = techName.querySelectorAll('.source-link');
+                            oldLinks.forEach(link => link.remove());
+                            
+                            // 添加新的GitHub链接
+                            if (trimmedLink) {
+                                const sourceLink = document.createElement(isEditMode ? 'span' : 'a');
+                                sourceLink.className = 'base-tag source-link';
+                                sourceLink.textContent = 'GitHub';
+                                
+                                if (isEditMode) {
+                                    sourceLink.onclick = (e) => {
+                                        e.stopPropagation();
+                                        EditManager.editGitHubLink(projectId, trimmedLink);
+                                    };
+                                    sourceLink.title = '点击编辑GitHub链接';
+                                } else {
+                                    sourceLink.href = trimmedLink;
+                                    sourceLink.target = '_blank';
+                                    sourceLink.title = '项目源';
+                                }
+                                
+                                techName.appendChild(document.createTextNode(' '));
+                                techName.appendChild(sourceLink);
+                            } else if (isEditMode) {
+                                const sourceLink = document.createElement('span');
+                                sourceLink.className = 'base-tag source-link';
+                                sourceLink.textContent = '+ GitHub';
+                                sourceLink.onclick = (e) => {
+                                    e.stopPropagation();
+                                    EditManager.editGitHubLink(projectId, '');
+                                };
+                                sourceLink.title = '点击添加GitHub链接';
+                                
+                                techName.appendChild(document.createTextNode(' '));
+                                techName.appendChild(sourceLink);
+                            }
+                        }
+                    });
+                    
+                    showSuccessToast('GitHub链接更新成功');
+                    
+                    // 后台同步数据库
                     try {
                         await supabase.from('projects').update({
-                            source: newLink.trim() || null,
+                            source: trimmedLink,
                             last_updated: new Date().toISOString()
                         }).eq('id', projectId);
                         
                         await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
-                        showSuccessToast('GitHub链接更新成功');
-                        await loadPageData();
                     } catch (error) {
                         console.error('更新GitHub链接失败:', error);
-                        alert('更新失败，请重试');
+                        showSuccessToast('更新失败，正在恢复...');
+                        
+                        // 回滚数据和UI
+                        project.source = oldLink;
+                        await loadPageData(); // GitHub链接UI比较复杂，回滚时重新加载
                     }
                 },
                 
@@ -1235,6 +1417,40 @@
                     
                     const newOwners = newOwnersStr.split(',').map(s => s.trim()).filter(s => s);
                     
+                    // 更新内存数据
+                    const project = allProjects.find(p => p.id == projectId);
+                    if (!project) return;
+                    
+                    const oldOwners = [...(project.owner || [])];
+                    project.owner = newOwners;
+                    
+                    // 立即更新UI - 更新所有相关的负责人标签
+                    const projectElements = document.querySelectorAll(`[data-project-id="${projectId}"]`);
+                    projectElements.forEach(projectEl => {
+                        const tagsContainer = projectEl.querySelector('.tags-container');
+                        if (tagsContainer) {
+                            // 移除旧的负责人标签
+                            const oldOwnerTags = tagsContainer.querySelectorAll('.owner-tag:not([onclick])');
+                            oldOwnerTags.forEach(tag => tag.remove());
+                            
+                            // 添加新的负责人标签
+                            const editBtn = tagsContainer.querySelector('.owner-tag[onclick]');
+                            newOwners.forEach(owner => {
+                                const ownerTag = document.createElement('div');
+                                ownerTag.className = 'base-tag owner-tag';
+                                ownerTag.textContent = owner;
+                                if (editBtn) {
+                                    tagsContainer.insertBefore(ownerTag, editBtn);
+                                } else {
+                                    tagsContainer.appendChild(ownerTag);
+                                }
+                            });
+                        }
+                    });
+                    
+                    showSuccessToast('负责人更新成功');
+                    
+                    // 后台同步数据库
                     try {
                         await supabase.from('projects').update({
                             owner: newOwners,
@@ -1242,11 +1458,33 @@
                         }).eq('id', projectId);
                         
                         await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
-                        showSuccessToast('负责人更新成功');
-                        await loadPageData();
                     } catch (error) {
                         console.error('更新负责人失败:', error);
-                        alert('更新失败，请重试');
+                        showSuccessToast('更新失败，正在恢复...');
+                        
+                        // 回滚数据
+                        project.owner = oldOwners;
+                        
+                        // 回滚UI - 重新渲染该项目的负责人标签
+                        projectElements.forEach(projectEl => {
+                            const tagsContainer = projectEl.querySelector('.tags-container');
+                            if (tagsContainer) {
+                                const oldOwnerTags = tagsContainer.querySelectorAll('.owner-tag:not([onclick])');
+                                oldOwnerTags.forEach(tag => tag.remove());
+                                
+                                const editBtn = tagsContainer.querySelector('.owner-tag[onclick]');
+                                oldOwners.forEach(owner => {
+                                    const ownerTag = document.createElement('div');
+                                    ownerTag.className = 'base-tag owner-tag';
+                                    ownerTag.textContent = owner;
+                                    if (editBtn) {
+                                        tagsContainer.insertBefore(ownerTag, editBtn);
+                                    } else {
+                                        tagsContainer.appendChild(ownerTag);
+                                    }
+                                });
+                            }
+                        });
                     }
                 },
                 
@@ -1254,6 +1492,21 @@
                     const newStatus = currentStatus === 'dev' ? 'done' : 'dev';
                     const statusText = newStatus === 'done' ? '已完成' : '待开发';
                     
+                    // 立即更新UI
+                    const statusElements = document.querySelectorAll(`[data-project-id="${projectId}"] .status-tag`);
+                    statusElements.forEach(el => {
+                        el.textContent = statusText;
+                        el.className = `base-tag status-tag status-${newStatus}`;
+                        if (isEditMode) {
+                            el.onclick = () => EditManager.toggleStatus(projectId, newStatus);
+                        }
+                    });
+                    
+                    // 更新内存数据
+                    const project = allProjects.find(p => p.id == projectId);
+                    if (project) project.status = newStatus;
+                    
+                    // 后台同步数据库
                     try {
                         await supabase.from('projects').update({
                             status: newStatus,
@@ -1262,10 +1515,15 @@
                         
                         await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
                         showSuccessToast(`状态已切换为：${statusText}`);
-                        await loadPageData();
                     } catch (error) {
                         console.error('更新状态失败:', error);
-                        alert('状态更新失败，请重试');
+                        showSuccessToast('状态更新失败，请重试');
+                        // 回滚UI状态
+                        statusElements.forEach(el => {
+                            el.textContent = currentStatus === 'done' ? '已完成' : '待开发';
+                            el.className = `base-tag status-tag status-${currentStatus}`;
+                        });
+                        if (project) project.status = currentStatus;
                     }
                 },
                 
@@ -1306,21 +1564,43 @@
                 },
                 
                 async deleteMilestone(projectId, milestoneIndex) {
+                    // 立即更新UI - 移除对应的milestone元素
+                    const milestoneElement = document.querySelector(`[data-project-id="${projectId}"] [data-milestone-index="${milestoneIndex}"]`);
+                    if (milestoneElement) {
+                        const timelineItem = milestoneElement.closest('.timeline-item');
+                        if (timelineItem) {
+                            timelineItem.remove();
+                        }
+                    }
+                    
+                    // 更新内存数据
+                    const project = allProjects.find(p => p.id == projectId);
+                    let originalMilestones = [];
+                    if (project && project.milestones) {
+                        originalMilestones = [...project.milestones];
+                        project.milestones.splice(milestoneIndex, 1);
+                    }
+                    
+                    // 重新索引剩余的milestone元素
+                    const remainingMilestones = document.querySelectorAll(`[data-project-id="${projectId}"] .timeline-text[contenteditable="true"]`);
+                    remainingMilestones.forEach((el, index) => {
+                        el.setAttribute('data-milestone-index', index);
+                    });
+                    
+                    // 重新绑定删除按钮的索引
+                    const deleteButtons = document.querySelectorAll(`[data-project-id="${projectId}"] .milestone-delete-btn`);
+                    deleteButtons.forEach((btn, index) => {
+                        btn.onclick = (e) => {
+                            e.stopPropagation();
+                            EditManager.deleteMilestone(projectId, index);
+                        };
+                    });
+                    
+                    showSuccessToast('进度记录已删除');
+                    
+                    // 后台同步数据库
                     try {
-                        // 获取当前项目的milestones
-                        const { data: projectData, error: fetchError } = await supabase
-                            .from('projects')
-                            .select('milestones')
-                            .eq('id', projectId)
-                            .single();
-                        
-                        if (fetchError) throw fetchError;
-                        
-                        const updatedMilestones = [...(projectData.milestones || [])];
-                        // 删除指定索引的milestone
-                        updatedMilestones.splice(milestoneIndex, 1);
-                        
-                        // 更新数据库
+                        const updatedMilestones = project ? project.milestones : [];
                         await supabase
                             .from('projects')
                             .update({ 
@@ -1332,12 +1612,12 @@
                         await supabase.from('meta').update({ 
                             last_updated: new Date().toISOString() 
                         }).eq('id', 1);
-                        
-                        showSuccessToast('进度记录已删除');
-                        await loadPageData();
                     } catch (error) {
                         console.error('删除进度记录失败:', error);
-                        alert('删除失败，请重试');
+                        showSuccessToast('删除失败，正在恢复...');
+                        // 回滚：重新加载页面
+                        if (project) project.milestones = originalMilestones;
+                        await loadPageData();
                     }
                 },
                 
@@ -1346,10 +1626,45 @@
                     const project = allProjects.find(p => p.id == projectId);
                     const projectName = project ? project.name : '此项目';
                     
-                    if (!confirm(`确定要删除项目"${projectName}"吗？此操作不可恢复！`)) {
-                        return;
+                    // 要求用户输入项目名称确认删除
+                    const userInput = prompt(
+                        `⚠️ 删除项目确认\n\n` +
+                        `项目名称：${projectName}\n` +
+                        `此操作不可恢复！\n\n` +
+                        `请输入项目名称以确认删除：`,
+                        ''
+                    );
+                    
+                    if (userInput === null) {
+                        return; // 用户取消
                     }
                     
+                    if (userInput.trim() !== projectName) {
+                        alert(`❌ 项目名称不匹配！\n输入的名称："${userInput}"\n实际名称："${projectName}"\n\n删除操作已取消。`);
+                        return; // 名称不匹配，取消删除
+                    }
+                    
+                    // 立即更新UI - 移除项目卡片
+                    const projectElement = document.querySelector(`[data-project-id="${projectId}"]`);
+                    let parentContainer = null;
+                    let projectHtml = '';
+                    
+                    if (projectElement) {
+                        parentContainer = projectElement.parentElement;
+                        projectHtml = projectElement.outerHTML; // 保存用于回滚
+                        projectElement.remove();
+                    }
+                    
+                    // 更新内存数据
+                    const projectIndex = allProjects.findIndex(p => p.id == projectId);
+                    let removedProject = null;
+                    if (projectIndex > -1) {
+                        removedProject = allProjects.splice(projectIndex, 1)[0];
+                    }
+                    
+                    showSuccessToast(`项目"${projectName}"已删除`);
+                    
+                    // 后台同步数据库
                     try {
                         await supabase
                             .from('projects')
@@ -1359,12 +1674,22 @@
                         await supabase.from('meta').update({ 
                             last_updated: new Date().toISOString() 
                         }).eq('id', 1);
-                        
-                        showSuccessToast(`项目"${projectName}"已删除`);
-                        await loadPageData();
                     } catch (error) {
                         console.error('删除项目失败:', error);
-                        alert('删除项目失败，请重试');
+                        showSuccessToast('删除失败，正在恢复...');
+                        
+                        // 回滚UI和数据
+                        if (removedProject) {
+                            allProjects.splice(projectIndex, 0, removedProject);
+                        }
+                        if (parentContainer && projectHtml) {
+                            parentContainer.insertAdjacentHTML('beforeend', projectHtml);
+                            // 重新绑定事件监听器
+                            const restoredElement = parentContainer.querySelector(`[data-project-id="${projectId}"]`);
+                            if (restoredElement) {
+                                addToggleListener(restoredElement);
+                            }
+                        }
                     }
                 }
             };
@@ -1372,6 +1697,8 @@
             // 设置全局函数供HTML调用
             window.EditManager = EditManager;
             window.closeCreateModal = () => EditManager.closeCreateModal();
+            
+
 
             const createTechItemHTML = (item) => {
                 const statusTag = item.status ? 
@@ -1397,7 +1724,7 @@
                         <div class="details-content">
                             <div class="tags-container">
                                 ${ownerTags}
-                                ${isEditMode ? `<span class="base-tag owner-tag" onclick="event.stopPropagation(); EditManager.editOwnerList(${item.id}, '${(item.owner || []).join(', ')}')" style="cursor: pointer; background-color: #e9ecef;">✏️ 编辑负责人</span>` : ''}
+                                ${isEditMode ? `<span class="base-tag owner-tag" onclick="event.stopPropagation(); EditManager.editOwnerList(${item.id}, ${JSON.stringify((item.owner || []).join(', '))})" style="cursor: pointer; background-color: #e9ecef;">✏️ 编辑负责人</span>` : ''}
                             </div>
                             <ul class="timeline">
                                 ${item.milestones && item.milestones.length > 0 ?
@@ -1405,7 +1732,7 @@
                                         <li class="timeline-item">
                                             <div class="timeline-date">${m.date}</div>
                                             <div class="timeline-content">
-                                                <div class="timeline-text" contenteditable="true" data-milestone-index="${index}">${m.text}</div>
+                                            <div class="timeline-text" contenteditable="true" data-milestone-index="${index}">${m.text}</div>
                                                 ${isEditMode ? `<button class="milestone-delete-btn" onclick="event.stopPropagation(); EditManager.deleteMilestone(${item.id}, ${index})" title="删除此进度">×</button>` : ''}
                                             </div>
                                         </li>`).join('')
@@ -1422,7 +1749,10 @@
                 // 项目删除按钮（仅在编辑模式下显示）
                 const deleteBtn = isEditMode ? `<div class="project-delete-container"><button class="project-delete-btn" onclick="event.stopPropagation(); EditManager.deleteProject(${item.id})" title="删除项目">🗑️ 删除项目</button></div>` : '';
                 
-                return `<div class="tech-item" data-has-details="true" data-project-id="${item.id}"><div class="item-summary"><div class="item-header"><div class="tech-name editable-title">${item.name} ${sourceLink}</div>${statusTag}</div><div class="tech-desc editable-title">${item.description}</div>${deleteBtn}</div>${detailsHtml}</div>`;
+                // 为有GitHub链接的项目添加特殊CSS类（仅在编辑模式下显示效果）
+                const hasGithubClass = item.source ? 'has-github' : '';
+                
+                return `<div class="tech-item ${hasGithubClass}" data-has-details="true" data-project-id="${item.id}"><div class="item-summary"><div class="item-header"><div class="tech-name editable-title">${item.name} ${sourceLink}</div>${statusTag}</div><div class="tech-desc editable-title">${item.description}</div>${deleteBtn}</div>${detailsHtml}</div>`;
             };
             
             const addToggleListener = (item) => {
@@ -1443,15 +1773,16 @@
                     if (isTouchDevice) {
                         item.addEventListener('touchstart', (e) => {
                             // 如果点击的是输入框、按钮或可编辑元素，不记录触摸位置
-                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag, .project-delete-btn')) {
+                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .project-delete-btn, .status-tag')) {
                                 return;
                             }
                             touchStartY = e.touches[0].clientY;
                         }, { passive: true });
                         
-                        item.addEventListener('touchend', (e) => {
+                                                item.addEventListener('touchend', (e) => {
                             // 如果点击的是输入框、按钮或可编辑元素，不处理展开逻辑
-                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag, .project-delete-btn')) {
+                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .project-delete-btn, .status-tag')) {
+                                e.stopPropagation(); // 阻止事件传播
                                 return;
                             }
                             touchEndY = e.changedTouches[0].clientY;
@@ -1465,7 +1796,8 @@
                     // 桌面端始终绑定click
                     item.addEventListener('click', (e) => {
                         // 检查是否点击了不应该触发展开的元素
-                        if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag, .project-delete-btn')) {
+                        if (e.target.closest('input, button, [contenteditable="true"], .source-link, .project-delete-btn, .status-tag')) {
+                            e.stopPropagation();
                             return;
                         }
                         item.classList.toggle('expanded');
@@ -1583,40 +1915,79 @@
                             const projectId = techItem.dataset.projectId;
                             const project = allProjects.find(p => p.id == projectId);
                             
+                            let oldValue = '';
+                            let newValue = '';
+                            
                             if (el.classList.contains('tech-name')) {
-                                const newName = el.textContent.replace(/\s*(GitHub|\+ GitHub)\s*$/, '').trim();
-                                project.name = newName;
+                                oldValue = project.name;
+                                newValue = el.textContent.replace(/\s*(GitHub|\+ GitHub)\s*$/, '').trim();
+                                project.name = newValue;
                             } else if (el.classList.contains('tech-desc')) {
-                                project.description = el.textContent.trim();
+                                oldValue = project.description;
+                                newValue = el.textContent.trim();
+                                project.description = newValue;
                             }
                             
-                            // 保存更改
-                            await supabase.from('projects').update({
-                                name: project.name,
-                                description: project.description,
-                                last_updated: new Date().toISOString()
-                            }).eq('id', projectId);
+                            // 如果值没有改变，不需要同步
+                            if (oldValue === newValue) return;
                             
-                            await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
                             showSuccessToast('项目信息更新成功');
-                            await loadPageData();
+                            
+                            // 后台同步数据库
+                            try {
+                                await supabase.from('projects').update({
+                                    name: project.name,
+                                    description: project.description,
+                                    last_updated: new Date().toISOString()
+                                }).eq('id', projectId);
+                                
+                                await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
+                            } catch (error) {
+                                console.error('更新失败:', error);
+                                showSuccessToast('更新失败，正在恢复...');
+                                
+                                // 回滚值
+                                if (el.classList.contains('tech-name')) {
+                                    project.name = oldValue;
+                                    el.textContent = oldValue;
+                                } else if (el.classList.contains('tech-desc')) {
+                                    project.description = oldValue;
+                                    el.textContent = oldValue;
+                                }
+                            }
                         } else if (stackLayer) {
                             // 编辑分类名称
                             const oldCategory = stackLayer.querySelector('.layer-header').dataset.originalName || stackLayer.querySelector('.layer-header').textContent;
                             const newCategory = el.textContent.trim();
                             
                             if (oldCategory !== newCategory) {
-                                // 更新所有该分类下的项目
+                                // 立即更新内存中的项目分类
                                 const projectsToUpdate = allProjects.filter(p => p.category === oldCategory);
-                                for (const project of projectsToUpdate) {
-                                    await supabase.from('projects')
-                                        .update({ category: newCategory, last_updated: new Date().toISOString() })
-                                        .eq('id', project.id);
-                                }
+                                projectsToUpdate.forEach(project => {
+                                    project.category = newCategory;
+                                });
                                 
-                                await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
                                 showSuccessToast('分类名称更新成功');
-                                await loadPageData();
+                                
+                                // 后台同步数据库
+                                try {
+                                    for (const project of projectsToUpdate) {
+                                        await supabase.from('projects')
+                                            .update({ category: newCategory, last_updated: new Date().toISOString() })
+                                            .eq('id', project.id);
+                                    }
+                                    
+                                    await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
+                                } catch (error) {
+                                    console.error('更新失败:', error);
+                                    showSuccessToast('更新失败，请刷新页面');
+                                    
+                                    // 回滚分类名称
+                                    projectsToUpdate.forEach(project => {
+                                        project.category = oldCategory;
+                                    });
+                                    el.textContent = oldCategory;
+                                }
                             }
                         }
                     });
@@ -1630,68 +2001,105 @@
                 });
             };
 
-            const addEditableListeners = () => {
-                 document.querySelectorAll('.timeline-text[contenteditable="true"]').forEach(el => {
-                    // 防抖函数
-                    let debounceTimer;
-                    const debounce = (func, wait) => {
-                        return function executedFunction(...args) {
-                            const later = () => {
-                                clearTimeout(debounceTimer);
-                                func(...args);
-                            };
+            // 为单个timeline-text元素绑定事件
+            const bindTimelineTextEvents = (el) => {
+                // 避免重复绑定
+                if (el._timelineEventsBound) return;
+                el._timelineEventsBound = true;
+                
+                // 防抖函数
+                let debounceTimer;
+                const debounce = (func, wait) => {
+                    return function executedFunction(...args) {
+                        const later = () => {
                             clearTimeout(debounceTimer);
-                            debounceTimer = setTimeout(later, wait);
+                            func(...args);
                         };
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(later, wait);
                     };
+                };
+                
+                const saveEdit = async () => {
+                    // 如果是新创建的元素，第一次编辑时不显示成功提示
+                    const isNewlyCreated = el._isNewlyCreated;
+                    if (isNewlyCreated) {
+                        el._isNewlyCreated = false;
+                        return; // 跳过第一次保存，避免重复提示
+                    }
                     
-                    const saveEdit = async () => {
                         const newText = el.textContent.trim();
                         const itemEl = el.closest('.tech-item');
                         const projectId = itemEl.dataset.projectId;
                         const milestoneIndex = parseInt(el.dataset.milestoneIndex, 10);
 
-                        const { data: projectData } = await supabase.from('projects').select('milestones').eq('id', projectId).single();
-                        const updatedMilestones = projectData.milestones || [];
-
-                        if (updatedMilestones[milestoneIndex] && updatedMilestones[milestoneIndex].text !== newText) {
-                            updatedMilestones[milestoneIndex].text = newText;
+                    const project = allProjects.find(p => p.id == projectId);
+                    if (!project || !project.milestones || !project.milestones[milestoneIndex]) return;
+                    
+                    const oldText = project.milestones[milestoneIndex].text;
+                    if (oldText === newText) return; // 没有变化
+                    
+                    // 立即更新内存数据
+                    project.milestones[milestoneIndex].text = newText;
+                    
+                    showSuccessToast('进度更新成功');
+                    
+                    // 后台同步数据库
+                    try {
                             const now = new Date().toISOString();
-                            await supabase.from('projects').update({ milestones: updatedMilestones, last_updated: now }).eq('id', projectId);
+                        await supabase.from('projects').update({ 
+                            milestones: project.milestones, 
+                            last_updated: now 
+                        }).eq('id', projectId);
                             await supabase.from('meta').update({ last_updated: now }).eq('id', 1);
                             lastUpdatedEl.textContent = `Last updated on ${new Date(now).toLocaleDateString()}`;
-                            showSuccessToast('进度更新成功');
-                        }
-                    };
-                    
-                    // 使用防抖处理保存
-                    el.addEventListener('blur', debounce(saveEdit, 500));
-                    
-                    // 移动端优化：点击时全选文本
-                    el.addEventListener('focus', () => {
-                        if (window.innerWidth <= 768) {
-                            setTimeout(() => {
-                                const range = document.createRange();
-                                range.selectNodeContents(el);
-                                const sel = window.getSelection();
-                                sel.removeAllRanges();
-                                sel.addRange(range);
-                            }, 100);
-                        }
-                    });
-                    
-                    // 确保可编辑区域能正常唤起键盘
-                    el.addEventListener('touchstart', (e) => {
-                        e.stopPropagation();
-                    }, { passive: true });
-                    
-                    el.addEventListener('touchend', (e) => {
-                        e.stopPropagation();
-                    }, { passive: true });
+                    } catch (error) {
+                        console.error('更新失败:', error);
+                        showSuccessToast('更新失败，正在恢复...');
+                        
+                        // 回滚数据和UI
+                        project.milestones[milestoneIndex].text = oldText;
+                        el.textContent = oldText;
+                    }
+                };
+                
+                // 使用防抖处理保存
+                el.addEventListener('blur', debounce(saveEdit, 500));
+                
+                // 移动端优化：点击时全选文本
+                el.addEventListener('focus', () => {
+                    if (window.innerWidth <= 768) {
+                        setTimeout(() => {
+                            const range = document.createRange();
+                            range.selectNodeContents(el);
+                            const sel = window.getSelection();
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                        }, 100);
+                    }
+                });
+                
+                // 确保可编辑区域能正常唤起键盘
+                el.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
+                
+                el.addEventListener('touchend', (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
+            };
+
+            const addEditableListeners = () => {
+                 document.querySelectorAll('.timeline-text[contenteditable="true"]').forEach(el => {
+                    bindTimelineTextEvents(el);
                 });
                 
                 // 为删除按钮添加触摸事件处理
                 document.querySelectorAll('.milestone-delete-btn').forEach(btn => {
+                    // 避免重复绑定事件
+                    if (btn._milestoneDeleteEventBound) return;
+                    btn._milestoneDeleteEventBound = true;
+                    
                     btn.addEventListener('touchstart', (e) => {
                         e.stopPropagation();
                     }, { passive: true });
@@ -1703,6 +2111,10 @@
                 
                 // 为项目删除按钮添加触摸事件处理
                 document.querySelectorAll('.project-delete-btn').forEach(btn => {
+                    // 避免重复绑定事件
+                    if (btn._projectDeleteEventBound) return;
+                    btn._projectDeleteEventBound = true;
+                    
                     btn.addEventListener('touchstart', (e) => {
                         e.stopPropagation();
                     }, { passive: true });
@@ -1710,6 +2122,8 @@
                     btn.addEventListener('touchend', (e) => {
                         e.stopPropagation();
                     }, { passive: true });
+                    
+
                 });
             };
 
@@ -1724,14 +2138,42 @@
                         
                         button.disabled = true;
                         const projectId = form.dataset.projectId;
-                        const { data: projectData } = await supabase.from('projects').select('milestones').eq('id', projectId).single();
+                        const project = allProjects.find(p => p.id == projectId);
+                        if (!project) return;
                         
                         const newMilestone = { date: new Date().toISOString().split('T')[0], text: text };
-                        const updatedMilestones = [...(projectData.milestones || []), newMilestone];
-                        const now = new Date().toISOString();
-
-                        await supabase.from('projects').update({ milestones: updatedMilestones, last_updated: now }).eq('id', projectId);
-                        await supabase.from('meta').update({ last_updated: now }).eq('id', 1);
+                        
+                        // 立即更新内存数据
+                        if (!project.milestones) project.milestones = [];
+                        project.milestones.push(newMilestone);
+                        
+                        // 立即更新UI - 在timeline中添加新milestone
+                        const timeline = form.previousElementSibling;
+                        if (timeline && timeline.classList.contains('timeline')) {
+                            const newIndex = project.milestones.length - 1;
+                            const newMilestoneHtml = `
+                                <li class="timeline-item">
+                                    <div class="timeline-date">${newMilestone.date}</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-text" contenteditable="true" data-milestone-index="${newIndex}">${newMilestone.text}</div>
+                                        ${isEditMode ? `<button class="milestone-delete-btn" onclick="event.stopPropagation(); EditManager.deleteMilestone(${projectId}, ${newIndex})" title="删除此进度">×</button>` : ''}
+                                    </div>
+                                </li>
+                            `;
+                            timeline.insertAdjacentHTML('beforeend', newMilestoneHtml);
+                            
+                            // 为新添加的milestone绑定编辑事件
+                            const newMilestoneElement = timeline.lastElementChild;
+                            if (newMilestoneElement) {
+                                // 只为新添加的元素绑定事件，而不是重新绑定所有元素
+                                const textElement = newMilestoneElement.querySelector('.timeline-text[contenteditable="true"]');
+                                if (textElement) {
+                                    // 标记为新创建的元素，避免立即触发保存
+                                    textElement._isNewlyCreated = true;
+                                    bindTimelineTextEvents(textElement);
+                                }
+                            }
+                        }
 
                         // 立即响应
                         input.value = '';
@@ -1739,10 +2181,6 @@
                         button.classList.add('success');
                         button.textContent = '✓ 已添加';
                         
-                        // 立即重新加载数据
-                        loadPageData(true);
-                        
-                        // 通过右下角通知呈现操作结果
                         showSuccessToast('新进度添加成功');
                         
                         // 恢复按钮状态
@@ -1750,6 +2188,25 @@
                             button.classList.remove('success');
                             button.textContent = '添加';
                         }, 2000);
+                        
+                        // 后台同步数据库
+                        try {
+                            const now = new Date().toISOString();
+                            await supabase.from('projects').update({ 
+                                milestones: project.milestones, 
+                                last_updated: now 
+                            }).eq('id', projectId);
+                            await supabase.from('meta').update({ last_updated: now }).eq('id', 1);
+                        } catch (error) {
+                            console.error('添加进度失败:', error);
+                            showSuccessToast('添加失败，正在恢复...');
+                            
+                            // 回滚：移除刚添加的milestone
+                            project.milestones.pop();
+                            if (timeline && timeline.lastElementChild) {
+                                timeline.lastElementChild.remove();
+                            }
+                        }
                     });
                     
                     // 确保按钮能正常响应触摸
@@ -1767,34 +2224,17 @@
                     });
                 });
                 
-                // 为删除按钮添加触摸事件处理
-                document.querySelectorAll('.milestone-delete-btn').forEach(btn => {
-                    btn.addEventListener('touchstart', (e) => {
-                        e.stopPropagation();
-                    }, { passive: true });
-                    
-                    btn.addEventListener('touchend', (e) => {
-                        e.stopPropagation();
-                    }, { passive: true });
-                });
-                
-                // 为项目删除按钮添加触摸事件处理
-                document.querySelectorAll('.project-delete-btn').forEach(btn => {
-                    btn.addEventListener('touchstart', (e) => {
-                        e.stopPropagation();
-                    }, { passive: true });
-                    
-                    btn.addEventListener('touchend', (e) => {
-                        e.stopPropagation();
-                    }, { passive: true });
-                });
+                // 移除重复的事件处理器（在 addEditableListeners 中已经处理）
             };
             
-            const loadPageData = async (fullBuild = true) => {
+            const loadPageData = async (fullBuild = true, updateTime = true) => {
                 try {
                     const { data: metaData, error: metaError } = await supabase.from('meta').select('last_updated').eq('id', 1).single();
                     if(metaError) throw metaError;
+                    
+                    if (updateTime) {
                     lastUpdatedEl.textContent = `Last updated on ${new Date(metaData.last_updated).toLocaleDateString()}`;
+                    }
 
                     const { data, error } = await supabase.from('projects').select('*').order('id');
                     if (error) throw error;
@@ -1826,18 +2266,39 @@
                     loginForm.parentElement.classList.add('error');
                     passwordInput.value = '';
                 } else {
+                    // 显示loading模态框
                     loginModal.classList.remove('visible');
+                    loadingModal.classList.add('visible');
+                    
+                    try {
+                        await loadPageData();
+                        // 加载完成后显示主应用
+                        loadingModal.classList.remove('visible');
                     mainApp.style.visibility = 'visible';
-                    loadPageData();
+                    } catch (error) {
+                        console.error('页面加载失败:', error);
+                        loadingModal.classList.remove('visible');
+                        loginModal.classList.add('visible');
+                        loginError.textContent = '页面加载失败，请重试。';
+                    }
                 }
             };
 
             const checkSession = async () => {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) {
+                    // 如果已登录，显示loading并加载数据
+                    loadingModal.classList.add('visible');
+                    try {
+                        await loadPageData();
+                        EditManager.init(); // 初始化编辑管理器
+                        loadingModal.classList.remove('visible');
                     mainApp.style.visibility = 'visible';
-                    loadPageData();
-                    EditManager.init(); // 初始化编辑管理器
+                    } catch (error) {
+                        console.error('页面加载失败:', error);
+                        loadingModal.classList.remove('visible');
+                        loginModal.classList.add('visible');
+                    }
                 } else {
                     loginModal.classList.add('visible');
                 }
