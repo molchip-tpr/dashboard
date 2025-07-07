@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <title>Molchip Software AI · 工作计划</title>
+    <title>Molchip Software AI · 工作台</title>
     <style>
         :root {
             --bg-color: #000000;
@@ -182,6 +182,28 @@
             }
         }
         .owner-tag { background-color: #e9ecef; color: var(--subtle-text-color); }
+        
+        /* 编辑负责人按钮特殊样式 */
+        .edit-owner-btn {
+            position: relative !important;
+            z-index: 25 !important;
+            cursor: pointer !important;
+            background-color: #e9ecef !important;
+            transition: all 0.2s ease !important;
+            border: 1px solid #ccc !important;
+            pointer-events: auto !important;
+        }
+        
+        .edit-owner-btn:hover {
+            background-color: #d1ecf1 !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            border-color: #007bff !important;
+        }
+        
+        .edit-owner-btn:active {
+            transform: scale(0.95) !important;
+        }
         .source-link {
             background-color: #e9ecef; color: var(--subtle-text-color); text-decoration: none;
             border: 1px solid transparent; transition: all 0.2s ease-in-out;
@@ -1021,7 +1043,7 @@
 
     <div id="main-app">
         <header class="header-section">
-            <h1>Molchip Software AI · 工作计划</h1>
+            <h1>Molchip Software AI · 工作台</h1>
             <p class="page-subtitle" id="last-updated"></p>
             <p class="page-instructions">提示: 点击卡片可展开/折叠进度，点击下方标签可切换视图。</p>
         </header>
@@ -1053,7 +1075,7 @@
         
         <!-- 编辑模式Toggle -->
         <div class="control-item edit-mode-toggle">
-            <span>编辑模式</span>
+            <span>高级编辑模式</span>
             <div class="toggle-switch" id="toggle-switch">
                 <div class="toggle-slider"></div>
             </div>
@@ -1724,7 +1746,7 @@
                         <div class="details-content">
                             <div class="tags-container">
                                 ${ownerTags}
-                                ${isEditMode ? `<span class="base-tag owner-tag" onclick="event.stopPropagation(); EditManager.editOwnerList(${item.id}, ${JSON.stringify((item.owner || []).join(', '))})" style="cursor: pointer; background-color: #e9ecef;">✏️ 编辑负责人</span>` : ''}
+                                ${isEditMode ? `<span class="base-tag owner-tag edit-owner-btn" onclick="event.stopPropagation(); EditManager.editOwnerList(${item.id}, '${(item.owner || []).join(', ')}')" style="cursor: pointer !important; background-color: #e9ecef; position: relative; z-index: 20; border: 1px solid #ddd;">✏️ 编辑负责人</span>` : ''}
                             </div>
                             <ul class="timeline">
                                 ${item.milestones && item.milestones.length > 0 ?
