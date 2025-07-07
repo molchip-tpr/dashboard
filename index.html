@@ -110,14 +110,20 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        .tech-stack-container {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 2rem; align-items: start;
+        /* 瀑布流布局容器 */
+        .tech-stack-container, .owner-view-container {
+            column-count: auto;
+            column-width: 350px;
+            column-gap: 2rem;
+            align-items: start;
         }
 
         .stack-layer, .owner-group {
             background-color: var(--card-bg-color); color: var(--card-text-color); border-radius: 0.75rem;
             padding: 1.5rem; display: flex; flex-direction: column;
+            break-inside: avoid;
+            margin-bottom: 2rem;
+            width: 100%;
         }
         .layer-header, .owner-name { margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600; }
         .tech-items { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -186,48 +192,14 @@
         .milestone-button:active { transform: scale(0.95); }
         .milestone-button.success { background-color: var(--success-color); }
 
-        .owner-view-container { column-count: 3; column-gap: 2rem; }
-        .owner-group { break-inside: avoid; margin-bottom: 2rem; }
-
-        /* 展开指示器（移动端） */
-        .expand-indicator {
-            display: none;
-        }
-
-        /* 移动端卡片交互提示 */
-        .tech-item[data-has-details="true"] {
-            position: relative;
-        }
-        
-        /* 移动端优化：使用微妙的视觉提示 */
-        @media (max-width: 768px) {
-            .tech-item[data-has-details="true"] {
-                border-left: 3px solid transparent;
-                transition: all 0.2s ease;
-                cursor: pointer;
-            }
-            .tech-item[data-has-details="true"]:active {
-                border-left-color: var(--primary-color);
-                background-color: #f0f1f3;
-                transform: scale(0.98);
-            }
-            .tech-item[data-has-details="true"]:hover {
-                border-left-color: rgba(0,0,0,0.1);
-            }
-            .tech-item.expanded {
-                border-left-color: var(--primary-color);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-        }
-
         /* 响应式设计 */
         @media (max-width: 1200px) { 
-            .owner-view-container { column-count: 2; } 
+            .tech-stack-container, .owner-view-container { column-width: 300px; }
             #main-app { padding: 0 2rem; }
         }
         
         @media (max-width: 992px) { 
-            .tech-stack-container { grid-template-columns: 1fr; }
+            .tech-stack-container, .owner-view-container { column-count: 1; column-width: auto; }
             #main-app { padding: 0 1.5rem; }
         }
         
@@ -261,13 +233,15 @@
                 font-size: 0.85rem;
             }
             
-            .tech-stack-container {
-                gap: 1rem;
+            .tech-stack-container, .owner-view-container {
+                column-count: 1;
+                column-width: auto;
             }
             
             .stack-layer, .owner-group {
                 padding: 1rem;
                 border-radius: 0.5rem;
+                margin-bottom: 1rem;
             }
             .layer-header, .owner-name {
                 font-size: 1.1rem;
@@ -288,9 +262,6 @@
             
             .item-summary {
                 padding: 0.75rem;
-            }
-            .expand-indicator {
-                display: block;
             }
             
             .tech-name {
@@ -338,10 +309,6 @@
                 font-size: 0.75rem;
             }
             
-            .owner-view-container { 
-                column-count: 1; 
-            }
-            
             .login-box {
                 padding: 1.5rem;
                 margin: 0 1rem;
@@ -361,8 +328,9 @@
                 padding: 0.4rem 0.5rem;
                 font-size: 0.8rem;
             }
-            .tech-stack-container {
-                grid-template-columns: 1fr;
+            .tech-stack-container, .owner-view-container {
+                column-count: 1;
+                column-width: auto;
             }
             .stack-layer, .owner-group {
                 padding: 0.75rem;
@@ -389,6 +357,426 @@
             }
             .milestone-button:hover {
                 background-color: var(--primary-color);
+            }
+        }
+
+        /* 控制面板样式 - 右下角 */
+        .controls-panel {
+            position: fixed !important;
+            bottom: 2rem !important;
+            right: 2rem !important;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            gap: 0.6rem;
+            min-width: 170px;
+            transform: none !important;
+        }
+        
+        .control-item {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(255, 255, 255, 0.97);
+            border-radius: 0.6rem;
+            padding: 0.7rem 0.9rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-size: 13px;
+            color: var(--card-text-color);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative !important;
+            margin: 0 !important;
+            transform: none !important;
+        }
+        
+        .control-item span {
+            flex-grow: 1;
+            text-align: left;
+            margin-right: 0.5rem;
+            user-select: none;
+            line-height: 1.2;
+            position: relative !important;
+            display: inline-block !important;
+        }
+        
+        .control-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
+            background-color: rgba(255, 255, 255, 0.98);
+        }
+        
+
+        
+        .toggle-switch {
+            position: relative !important;
+            display: inline-block !important;
+            width: 38px;
+            height: 21px;
+            background-color: #ddd;
+            border-radius: 10.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            margin: 0 !important;
+            transform: none !important;
+        }
+        
+        .toggle-switch:hover {
+            background-color: #ccc;
+        }
+        
+        .toggle-switch.active:hover {
+            background-color: #333;
+        }
+        
+        /* 移动端触摸优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .toggle-switch:hover {
+                background-color: #ddd;
+            }
+            
+            .toggle-switch.active:hover {
+                background-color: var(--primary-color);
+            }
+        }
+        
+        .toggle-switch.active {
+            background-color: var(--primary-color);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-slider {
+            position: absolute !important;
+            top: 2px !important;
+            left: 2px !important;
+            width: 17px;
+            height: 17px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            margin: 0 !important;
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(17px);
+        }
+
+        
+        /* 编辑模式下全部展开 */
+        body.edit-mode .tech-item {
+            pointer-events: auto;
+        }
+        body.edit-mode .tech-item .details {
+            max-height: none !important;
+            overflow: visible;
+        }
+        
+
+        
+        /* 简化的添加按钮 */
+        .add-card-btn {
+            background-color: transparent;
+            border: 2px dashed var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--subtle-text-color);
+            font-size: 0.85rem;
+            display: none;
+        }
+        body.edit-mode .add-card-btn {
+            display: block;
+        }
+        .add-card-btn:hover {
+            border-color: var(--primary-color);
+            background-color: var(--inner-card-bg-color);
+            color: var(--card-text-color);
+        }
+        
+        /* 内联编辑样式 */
+        .editable-title {
+            position: relative;
+            cursor: text;
+        }
+        body.edit-mode .editable-title:hover {
+            background-color: rgba(0,0,0,0.03);
+            outline: 1px dashed var(--border-color);
+            outline-offset: 2px;
+        }
+        .editable-title.editing {
+            background-color: #f0f6ff;
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        
+        /* GitHub链接编辑模式 */
+        body.edit-mode .source-link {
+            cursor: pointer;
+            position: relative;
+        }
+        body.edit-mode .source-link:hover {
+            background-color: #ced4da;
+        }
+        body.edit-mode .source-link::after {
+            content: '✏️';
+            margin-left: 0.25rem;
+        }
+        
+        /* 状态标签编辑模式 */
+        body.edit-mode .status-tag {
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        body.edit-mode .status-tag:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        body.edit-mode .status-tag::after {
+            content: '✏️';
+            margin-left: 0.25rem;
+            font-size: 0.8em;
+        }
+        
+        /* 成功提示框 */
+        .success-toast {
+            position: fixed;
+            bottom: 8rem;
+            right: 2rem;
+            background-color: var(--success-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            font-size: 0.9rem;
+            max-width: 300px;
+        }
+        .success-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        /* 新建项目/分类模态框 */
+        .create-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .create-modal.active {
+            display: flex;
+        }
+        .create-modal-content {
+            background-color: var(--card-bg-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .create-modal.active .create-modal-content {
+            transform: scale(1);
+        }
+        .create-modal-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--card-text-color);
+        }
+        .create-modal-body {
+            color: var(--card-text-color);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: var(--subtle-text-color);
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+        .form-textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            font-size: 0.9rem;
+            min-height: 80px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .form-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            font-size: 0.9rem;
+            background-color: white;
+            box-sizing: border-box;
+        }
+        .owner-input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .owner-tag-input {
+            display: flex;
+            align-items: center;
+            background-color: var(--inner-card-bg-color);
+            border-radius: 1rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .owner-tag-remove {
+            margin-left: 0.5rem;
+            cursor: pointer;
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+        .owner-add-input {
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            min-width: 120px;
+        }
+        .create-modal-footer {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #333;
+        }
+        .btn-secondary {
+            background-color: var(--inner-card-bg-color);
+            color: var(--card-text-color);
+        }
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+        }
+        
+
+        
+        /* 移动端控制面板适配 */
+        @media (max-width: 768px) {
+            .controls-panel {
+                bottom: 1.5rem !important;
+                right: 1rem !important;
+                gap: 0.5rem;
+                min-width: 150px;
+            }
+            
+            .control-item {
+                padding: 0.6rem 0.7rem;
+                font-size: 11px;
+            }
+            
+            .toggle-switch {
+                width: 30px;
+                height: 17px;
+            }
+            
+            .toggle-slider {
+                width: 12px;
+                height: 12px;
+            }
+            
+            .toggle-switch.active .toggle-slider {
+                transform: translateX(13px);
+            }
+        }
+        
+        /* 小屏幕适配 */
+        @media (max-width: 400px) {
+            .controls-panel {
+                bottom: 1rem !important;
+                right: 0.5rem !important;
+                min-width: 120px;
+            }
+            
+            .control-item {
+                padding: 0.4rem 0.5rem;
+                font-size: 9px;
+            }
+            
+                         .toggle-switch {
+                 width: 26px;
+                 height: 15px;
+             }
+            
+            .toggle-slider {
+                width: 10px;
+                height: 10px;
+            }
+            
+                         .toggle-switch.active .toggle-slider {
+                 transform: translateX(11px);
+             }
+        }
+        
+        /* 超小屏幕适配 */
+        @media (max-width: 320px) {
+            .controls-panel {
+                min-width: 100px;
+            }
+            
+            .control-item span {
+                font-size: 8px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .create-modal-content {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            .success-toast {
+                bottom: 7rem;
+                right: 1rem;
+                max-width: calc(100vw - 2rem);
             }
         }
     </style>
@@ -426,6 +814,74 @@
         </main>
     </div>
     
+    <!-- 控制面板 -->
+    <div id="controls-panel" class="controls-panel">
+        <!-- 筛选Toggle -->
+        <div class="control-item">
+            <span>仅显示待开发</span>
+            <div class="toggle-switch" id="filter-switch">
+                <div class="toggle-slider"></div>
+            </div>
+        </div>
+        
+        <!-- 编辑模式Toggle -->
+        <div class="control-item edit-mode-toggle">
+            <span>编辑模式</span>
+            <div class="toggle-switch" id="toggle-switch">
+                <div class="toggle-slider"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 新建项目/分类模态框 -->
+    <div id="create-modal" class="create-modal">
+        <div class="create-modal-content">
+            <div class="create-modal-header" id="create-modal-title">创建新项目</div>
+            <div class="create-modal-body">
+                <form id="create-form">
+                    <div class="form-group">
+                        <label class="form-label" for="create-name">名称</label>
+                        <input type="text" id="create-name" class="form-input" required>
+                    </div>
+                    <div class="form-group" id="create-description-group">
+                        <label class="form-label" for="create-description">描述</label>
+                        <textarea id="create-description" class="form-textarea" required></textarea>
+                    </div>
+                    <div class="form-group" id="create-category-group">
+                        <label class="form-label" for="create-category">分类</label>
+                        <select id="create-category" class="form-select">
+                            <option value="">选择分类</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="create-status-group">
+                        <label class="form-label" for="create-status">状态</label>
+                        <select id="create-status" class="form-select">
+                            <option value="dev">待开发</option>
+                            <option value="done">已完成</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="create-source-group">
+                        <label class="form-label" for="create-source">GitHub 链接</label>
+                        <input type="url" id="create-source" class="form-input" placeholder="https://github.com/...">
+                    </div>
+                    <div class="form-group" id="create-owner-group">
+                        <label class="form-label">负责人</label>
+                        <div id="create-owner-container" class="owner-input-container">
+                            <input type="text" class="owner-add-input" placeholder="输入负责人并按回车">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="create-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">取消</button>
+                <button type="submit" form="create-form" class="btn btn-primary">创建</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 成功提示框 -->
+    <div id="success-toast" class="success-toast"></div>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -445,16 +901,305 @@
             const tabs = document.querySelectorAll('.tab-link');
             const tabContents = document.querySelectorAll('.tab-content');
             const lastUpdatedEl = document.getElementById('last-updated');
+            
+            // 编辑模式相关变量
+            let isEditMode = false;
+            let allProjects = [];
+            
+            // 筛选相关变量
+            let isFilterActive = false;
+            
+            // 成功提示功能
+            const showSuccessToast = (message) => {
+                const toast = document.getElementById('success-toast');
+                toast.textContent = message;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            };
+            
+            // 简化的编辑模式管理器
+            const EditManager = {
+                init() {
+                    this.setupEditModeToggle();
+                    this.setupCreateModal();
+                    this.checkEditPermission();
+                    this.setupFilterToggle();
+                },
+                
+                async checkEditPermission() {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session) {
+                        document.querySelector('.controls-panel').style.display = 'flex';
+                    }
+                },
+                
+                setupEditModeToggle() {
+                    const toggleSwitch = document.getElementById('toggle-switch');
+                    toggleSwitch.addEventListener('click', () => {
+                        isEditMode = !isEditMode;
+                        document.body.classList.toggle('edit-mode');
+                        toggleSwitch.classList.toggle('active');
+                        
+                        // 重新渲染视图
+                        buildRoadmapView(allProjects);
+                        buildOwnerView(allProjects);
+                    });
+                },
+                
+                setupFilterToggle() {
+                    const filterSwitch = document.getElementById('filter-switch');
+                    filterSwitch.addEventListener('click', () => {
+                        isFilterActive = !isFilterActive;
+                        filterSwitch.classList.toggle('active');
+                        
+                        // 重新渲染视图
+                        buildRoadmapView(allProjects);
+                        buildOwnerView(allProjects);
+                    });
+                },
+                
+                setupCreateModal() {
+                    // 创建表单提交
+                    document.getElementById('create-form').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await this.saveNewItem();
+                    });
+                    
+                    // 负责人输入框处理
+                    this.setupOwnerInput();
+                    
+                    // 点击背景关闭
+                    document.getElementById('create-modal').addEventListener('click', (e) => {
+                        if (e.target === e.currentTarget) {
+                            this.closeCreateModal();
+                        }
+                    });
+                },
+                
+                setupOwnerInput() {
+                    const container = document.getElementById('create-owner-container');
+                    const input = container.querySelector('.owner-add-input');
+                    
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const value = input.value.trim();
+                            if (value) {
+                                this.addOwnerTag(value);
+                                input.value = '';
+                            }
+                        }
+                    });
+                },
+                
+                addOwnerTag(owner) {
+                    const container = document.getElementById('create-owner-container');
+                    const input = container.querySelector('.owner-add-input');
+                    
+                    // 检查是否已存在
+                    const existing = Array.from(container.querySelectorAll('.owner-tag-input')).find(tag => 
+                        tag.textContent.includes(owner)
+                    );
+                    if (existing) return;
+                    
+                    const tag = document.createElement('div');
+                    tag.className = 'owner-tag-input';
+                    tag.innerHTML = `
+                        ${owner}
+                        <span class="owner-tag-remove" onclick="this.parentElement.remove()">×</span>
+                    `;
+                    
+                    container.insertBefore(tag, input);
+                },
+                
+                openCreateProjectModal(category = '') {
+                    this.populateCategoryOptions();
+                    
+                    document.getElementById('create-modal-title').textContent = '创建新项目';
+                    document.getElementById('create-name').value = '';
+                    document.getElementById('create-description').value = '';
+                    document.getElementById('create-category').value = category;
+                    document.getElementById('create-status').value = 'dev';
+                    document.getElementById('create-source').value = '';
+                    
+                    // 清空负责人
+                    const container = document.getElementById('create-owner-container');
+                    container.querySelectorAll('.owner-tag-input').forEach(tag => tag.remove());
+                    
+                    // 显示项目相关字段
+                    document.getElementById('create-description-group').style.display = 'block';
+                    document.getElementById('create-category-group').style.display = 'block';
+                    document.getElementById('create-status-group').style.display = 'block';
+                    document.getElementById('create-source-group').style.display = 'block';
+                    document.getElementById('create-owner-group').style.display = 'block';
+                    
+                    document.getElementById('create-form').dataset.type = 'project';
+                    document.getElementById('create-modal').classList.add('active');
+                },
+                
+
+                
+                populateCategoryOptions() {
+                    const select = document.getElementById('create-category');
+                    const categories = [...new Set(allProjects.map(p => p.category))];
+                    
+                    select.innerHTML = '<option value="">选择分类</option>';
+                    categories.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat;
+                        option.textContent = cat;
+                        select.appendChild(option);
+                    });
+                },
+                
+                closeCreateModal() {
+                    document.getElementById('create-modal').classList.remove('active');
+                },
+                
+                async saveNewItem() {
+                    const form = document.getElementById('create-form');
+                    const type = form.dataset.type;
+                    const name = document.getElementById('create-name').value.trim();
+                    
+                    if (!name) return;
+                    
+                    try {
+                        // 创建新项目
+                        const owners = Array.from(document.querySelectorAll('#create-owner-container .owner-tag-input')).map(tag => 
+                            tag.textContent.replace('×', '').trim()
+                        );
+                        
+                        const projectData = {
+                            name: name,
+                            description: document.getElementById('create-description').value.trim(),
+                            category: document.getElementById('create-category').value,
+                            status: document.getElementById('create-status').value,
+                            source: document.getElementById('create-source').value.trim() || null,
+                            owner: owners,
+                            milestones: [],
+                            last_updated: new Date().toISOString()
+                        };
+                        
+                        await supabase.from('projects').insert([projectData]);
+                        showSuccessToast(`项目 "${name}" 创建成功`);
+                        
+                        await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
+                        this.closeCreateModal();
+                        await loadPageData();
+                    } catch (error) {
+                        console.error('创建失败:', error);
+                        alert('创建失败，请重试');
+                    }
+                },
+                
+                async deleteProject(projectId) {
+                    if (!confirm('确定要删除这个项目吗？')) return;
+                    
+                    try {
+                        await supabase.from('projects').delete().eq('id', projectId);
+                        await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
+                        showSuccessToast('项目删除成功');
+                        await loadPageData();
+                    } catch (error) {
+                        console.error('删除失败:', error);
+                        alert('删除失败，请重试');
+                    }
+                },
+                
+
+                
+                async editGitHubLink(projectId, currentLink) {
+                    const newLink = prompt('请输入GitHub链接：', currentLink || '');
+                    if (newLink === null) return; // 用户取消
+                    
+                    try {
+                        await supabase.from('projects').update({
+                            source: newLink.trim() || null,
+                            last_updated: new Date().toISOString()
+                        }).eq('id', projectId);
+                        
+                        await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
+                        showSuccessToast('GitHub链接更新成功');
+                        await loadPageData();
+                    } catch (error) {
+                        console.error('更新GitHub链接失败:', error);
+                        alert('更新失败，请重试');
+                    }
+                },
+                
+                async editOwnerList(projectId, currentOwnersStr) {
+                    const newOwnersStr = prompt('请输入负责人（用逗号分隔）：', currentOwnersStr);
+                    if (newOwnersStr === null) return; // 用户取消
+                    
+                    const newOwners = newOwnersStr.split(',').map(s => s.trim()).filter(s => s);
+                    
+                    try {
+                        await supabase.from('projects').update({
+                            owner: newOwners,
+                            last_updated: new Date().toISOString()
+                        }).eq('id', projectId);
+                        
+                        await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
+                        showSuccessToast('负责人更新成功');
+                        await loadPageData();
+                    } catch (error) {
+                        console.error('更新负责人失败:', error);
+                        alert('更新失败，请重试');
+                    }
+                },
+                
+                async toggleStatus(projectId, currentStatus) {
+                    const newStatus = currentStatus === 'dev' ? 'done' : 'dev';
+                    const statusText = newStatus === 'done' ? '已完成' : '待开发';
+                    
+                    try {
+                        await supabase.from('projects').update({
+                            status: newStatus,
+                            last_updated: new Date().toISOString()
+                        }).eq('id', projectId);
+                        
+                        await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
+                        showSuccessToast(`状态已切换为：${statusText}`);
+                        await loadPageData();
+                    } catch (error) {
+                        console.error('更新状态失败:', error);
+                        alert('状态更新失败，请重试');
+                    }
+                }
+            };
+            
+            // 设置全局函数供HTML调用
+            window.EditManager = EditManager;
+            window.closeCreateModal = () => EditManager.closeCreateModal();
 
             const createTechItemHTML = (item) => {
-                const statusTag = item.status ? `<div class="base-tag status-tag status-${item.status}">${item.status === 'done' ? '已完成' : '待开发'}</div>` : '';
+                const statusTag = item.status ? 
+                    (isEditMode ? 
+                        `<div class="base-tag status-tag status-${item.status}" onclick="event.stopPropagation(); EditManager.toggleStatus(${item.id}, '${item.status}')" title="点击切换状态">${item.status === 'done' ? '已完成' : '待开发'}</div>` :
+                        `<div class="base-tag status-tag status-${item.status}">${item.status === 'done' ? '已完成' : '待开发'}</div>`
+                    ) : '';
                 const ownerTags = Array.isArray(item.owner) && item.owner.length > 0 ? item.owner.map(o => `<div class="base-tag owner-tag">${o}</div>`).join('') : '';
-                const sourceLink = item.source ? `<a href="${item.source}" target="_blank" class="base-tag source-link" title="项目源">GitHub</a>` : '';
+                
+                // GitHub链接：编辑模式下可点击编辑，普通模式下跳转
+                const sourceLink = item.source ? 
+                    (isEditMode ? 
+                        `<span class="base-tag source-link" onclick="event.stopPropagation(); EditManager.editGitHubLink(${item.id}, '${item.source || ''}')" title="点击编辑GitHub链接">GitHub</span>` :
+                        `<a href="${item.source}" target="_blank" class="base-tag source-link" title="项目源">GitHub</a>`
+                    ) : 
+                    (isEditMode ? 
+                        `<span class="base-tag source-link" onclick="event.stopPropagation(); EditManager.editGitHubLink(${item.id}, '')" title="点击添加GitHub链接">+ GitHub</span>` : 
+                        ''
+                    );
 
                 const detailsHtml = `
                     <div class="details">
                         <div class="details-content">
-                            <div class="tags-container">${ownerTags}</div>
+                            <div class="tags-container">
+                                ${ownerTags}
+                                ${isEditMode ? `<span class="base-tag owner-tag" onclick="event.stopPropagation(); EditManager.editOwnerList(${item.id}, '${(item.owner || []).join(', ')}')" style="cursor: pointer; background-color: #e9ecef;">✏️ 编辑负责人</span>` : ''}
+                            </div>
                             <ul class="timeline">
                                 ${item.milestones && item.milestones.length > 0 ?
                                     item.milestones.map((m, index) => `
@@ -472,81 +1217,212 @@
                         </div>
                     </div>`;
 
-                return `<div class="tech-item" data-has-details="true" data-project-id="${item.id}"><div class="item-summary"><div class="item-header"><div class="tech-name">${item.name} ${sourceLink}</div>${statusTag}</div><div class="tech-desc">${item.description}</div></div>${detailsHtml}</div>`;
+                return `<div class="tech-item" data-has-details="true" data-project-id="${item.id}"><div class="item-summary"><div class="item-header"><div class="tech-name editable-title">${item.name} ${sourceLink}</div>${statusTag}</div><div class="tech-desc editable-title">${item.description}</div></div>${detailsHtml}</div>`;
             };
             
             const addToggleListener = (item) => {
-                if (item.dataset.hasDetails === 'true') {
+                 if (item.dataset.hasDetails === 'true') {
                     // 只绑定一次
                     if (item._toggleBound) return;
                     item._toggleBound = true;
+                    
+                    // 编辑模式下禁用展开功能
+                    if (isEditMode) {
+                        return;
+                    }
+                    
                     const isTouchDevice = 'ontouchstart' in window && navigator.maxTouchPoints > 0;
                     let touchStartY = 0;
                     let touchEndY = 0;
+                    
                     if (isTouchDevice) {
                         item.addEventListener('touchstart', (e) => {
-                            // 如果点击的是输入框或按钮，不记录触摸位置
-                            if (e.target.closest('input, button, [contenteditable="true"]')) {
+                            // 如果点击的是输入框、按钮或可编辑元素，不记录触摸位置
+                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag')) {
                                 return;
                             }
                             touchStartY = e.touches[0].clientY;
                         }, { passive: true });
+                        
                         item.addEventListener('touchend', (e) => {
-                            // 如果点击的是输入框或按钮，不处理展开逻辑
-                            if (e.target.closest('input, button, [contenteditable="true"]')) {
+                            // 如果点击的是输入框、按钮或可编辑元素，不处理展开逻辑
+                            if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag')) {
                                 return;
                             }
                             touchEndY = e.changedTouches[0].clientY;
                             if (Math.abs(touchEndY - touchStartY) < 10) {
                                 e.preventDefault();
-                                item.classList.toggle('expanded');
-                            }
-                        });
-                    }
-                    // 桌面端始终绑定click
-                    item.addEventListener('click', (e) => {
-                        if (!e.target.closest('a, form, [contenteditable="true"], input, button')) {
                             item.classList.toggle('expanded');
                         }
+                        });
+                    }
+                    
+                    // 桌面端始终绑定click
+                    item.addEventListener('click', (e) => {
+                        // 检查是否点击了不应该触发展开的元素
+                        if (e.target.closest('input, button, [contenteditable="true"], .source-link, .owner-tag, .base-tag')) {
+                            return;
+                        }
+                        item.classList.toggle('expanded');
                     });
                 }
             }
 
             const buildRoadmapView = (data) => {
-                const groupedData = data.reduce((acc, item) => { (acc[item.category] = acc[item.category] || []).push(item); return acc; }, {});
+                allProjects = data; // 保存所有项目数据
+                
+                // 如果筛选激活，只显示待开发的项目
+                const filteredData = isFilterActive ? data.filter(item => item.status === 'dev') : data;
+                const groupedData = filteredData.reduce((acc, item) => { (acc[item.category] = acc[item.category] || []).push(item); return acc; }, {});
                 roadmapContainer.innerHTML = '';
+                
                 for (const category in groupedData) {
                     const layer = document.createElement('div');
                     layer.className = 'stack-layer';
+                    
+
+                    
                     const itemsContainer = document.createElement('div');
                     itemsContainer.className = 'tech-items';
                     groupedData[category].forEach(item => itemsContainer.insertAdjacentHTML('beforeend', createTechItemHTML(item)));
-                    layer.innerHTML = `<h2 class="layer-header">${category}</h2>`;
+                    
+                    // 添加新项目按钮（仅在编辑模式下显示）
+                    if (isEditMode) {
+                        itemsContainer.insertAdjacentHTML('beforeend', `
+                            <button class="add-card-btn" onclick="EditManager.openCreateProjectModal('${category}')">
+                                + 添加新项目
+                            </button>
+                        `);
+                    }
+                    
+                    layer.innerHTML += `<h2 class="layer-header editable-title">${category}</h2>`;
                     layer.appendChild(itemsContainer);
                     roadmapContainer.appendChild(layer);
                 }
+                
+
+                
                 roadmapContainer.querySelectorAll('.tech-item').forEach(addToggleListener);
+                
+                // 如果在编辑模式，添加内联编辑功能
+                if (isEditMode) {
+                    setupInlineEditing();
+                }
+                addEditableListeners();
+                addMilestoneListeners();
             };
             
             const buildOwnerView = (data) => {
+                allProjects = data; // 保存所有项目数据
+                
+                // 如果筛选激活，只显示待开发的项目
+                const filteredData = isFilterActive ? data.filter(item => item.status === 'dev') : data;
                 const ownerTasks = {};
-                data.forEach(item => {
+                filteredData.forEach(item => {
                     if (item.owner && Array.isArray(item.owner)) {
                         item.owner.forEach(ownerName => { if (!ownerTasks[ownerName]) ownerTasks[ownerName] = []; ownerTasks[ownerName].push({ ...item }); });
                     }
                 });
                 ownerContainer.innerHTML = '';
+                
                 Object.keys(ownerTasks).sort().forEach(ownerName => {
                     const group = document.createElement('div');
                     group.className = 'owner-group';
+                    
                     const itemsContainer = document.createElement('div');
                     itemsContainer.className = 'tech-items';
                     ownerTasks[ownerName].forEach(item => itemsContainer.insertAdjacentHTML('beforeend', createTechItemHTML(item)));
-                    group.innerHTML = `<h2 class="owner-name">${ownerName}</h2>`;
+                    group.innerHTML += `<h2 class="owner-name editable-title">${ownerName}</h2>`;
                     group.appendChild(itemsContainer);
                     ownerContainer.appendChild(group);
                 });
                 ownerContainer.querySelectorAll('.tech-item').forEach(addToggleListener);
+                
+                // 如果在编辑模式，添加内联编辑功能
+                if (isEditMode) {
+                    setupInlineEditing();
+                }
+                addEditableListeners();
+                addMilestoneListeners();
+            };
+            
+            // 添加内联编辑功能
+            const setupInlineEditing = () => {
+                document.querySelectorAll('.editable-title').forEach(el => {
+                    el.addEventListener('dblclick', () => {
+                        if (!isEditMode) return;
+                        
+                        el.contentEditable = true;
+                        el.classList.add('editing');
+                        el.focus();
+                        
+                        // 选中全部文本
+                        const range = document.createRange();
+                        range.selectNodeContents(el);
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    });
+                    
+                    el.addEventListener('blur', async () => {
+                        if (!el.contentEditable || el.contentEditable === 'false') return;
+                        
+                        el.contentEditable = false;
+                        el.classList.remove('editing');
+                        
+                        const techItem = el.closest('.tech-item');
+                        const stackLayer = el.closest('.stack-layer');
+                        
+                        if (techItem) {
+                            // 编辑项目标题或描述
+                            const projectId = techItem.dataset.projectId;
+                            const project = allProjects.find(p => p.id == projectId);
+                            
+                            if (el.classList.contains('tech-name')) {
+                                const newName = el.textContent.replace(/\s*(GitHub|\+ GitHub)\s*$/, '').trim();
+                                project.name = newName;
+                            } else if (el.classList.contains('tech-desc')) {
+                                project.description = el.textContent.trim();
+                            }
+                            
+                            // 保存更改
+                            await supabase.from('projects').update({
+                                name: project.name,
+                                description: project.description,
+                                last_updated: new Date().toISOString()
+                            }).eq('id', projectId);
+                            
+                            await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
+                            showSuccessToast('项目信息更新成功');
+                            await loadPageData();
+                        } else if (stackLayer) {
+                            // 编辑分类名称
+                            const oldCategory = stackLayer.querySelector('.layer-header').dataset.originalName || stackLayer.querySelector('.layer-header').textContent;
+                            const newCategory = el.textContent.trim();
+                            
+                            if (oldCategory !== newCategory) {
+                                // 更新所有该分类下的项目
+                                const projectsToUpdate = allProjects.filter(p => p.category === oldCategory);
+                                for (const project of projectsToUpdate) {
+                                    await supabase.from('projects')
+                                        .update({ category: newCategory, last_updated: new Date().toISOString() })
+                                        .eq('id', project.id);
+                                }
+                                
+                                await supabase.from('meta').update({ last_updated: new Date().toISOString() }).eq('id', 1);
+                                showSuccessToast('分类名称更新成功');
+                                await loadPageData();
+                            }
+                        }
+                    });
+                    
+                    el.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            el.blur();
+                        }
+                    });
+                });
             };
 
             const addEditableListeners = () => {
@@ -579,6 +1455,7 @@
                             await supabase.from('projects').update({ milestones: updatedMilestones, last_updated: now }).eq('id', projectId);
                             await supabase.from('meta').update({ last_updated: now }).eq('id', 1);
                             lastUpdatedEl.textContent = `Last updated on ${new Date(now).toLocaleDateString()}`;
+                            showSuccessToast('进度更新成功');
                         }
                     };
                     
@@ -629,9 +1506,23 @@
                         await supabase.from('projects').update({ milestones: updatedMilestones, last_updated: now }).eq('id', projectId);
                         await supabase.from('meta').update({ last_updated: now }).eq('id', 1);
 
+                        // 立即响应
+                        input.value = '';
+                        button.disabled = false;
                         button.classList.add('success');
                         button.textContent = '✓ 已添加';
-                        setTimeout(() => loadPageData(true), 1000);
+                        
+                        // 立即重新加载数据
+                        loadPageData(true);
+                        
+                        // 通过右下角通知呈现操作结果
+                        showSuccessToast('新进度添加成功');
+                        
+                        // 恢复按钮状态
+                        setTimeout(() => {
+                            button.classList.remove('success');
+                            button.textContent = '添加';
+                        }, 2000);
                     });
                     
                     // 确保按钮能正常响应触摸
@@ -697,6 +1588,7 @@
                 if (session) {
                     mainApp.style.visibility = 'visible';
                     loadPageData();
+                    EditManager.init(); // 初始化编辑管理器
                 } else {
                     loginModal.classList.add('visible');
                 }
