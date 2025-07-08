@@ -147,40 +147,73 @@
         .status-dev { background-color: #fff0c7; color: #996a00; }
         .status-done { background-color: #d1f7e5; color: #0d6b42; }
         
-        /* 编辑模式下有GitHub链接的项目卡片样式 */
-        .edit-mode .tech-item.has-github {
-            background: linear-gradient(135deg, #d1f7e5 0%, #e8f5e8 100%);
-            border: 2px solid #0d6b42;
-            box-shadow: 0 2px 8px rgba(13, 107, 66, 0.15);
+        /* 高优先级任务样式 - 橙色光晕版 */
+        .high-priority-tag { 
+            background-color: var(--card-text-color); 
+            color: var(--card-bg-color); 
+            font-weight: 500;
+            border: 1px solid var(--subtle-text-color);
         }
         
-        .edit-mode .tech-item.has-github .item-summary {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            padding: 0.75rem;
+        .high-priority-btn {
+            background-color: var(--inner-card-bg-color);
+            color: var(--card-text-color);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 400;
         }
         
-        .edit-mode .tech-item.has-github .tech-name {
-            color: #0d6b42;
-            font-weight: 600;
+        .high-priority-btn:hover {
+            background-color: var(--subtle-text-color);
+            color: var(--card-bg-color);
         }
         
+        .high-priority-btn.active {
+            background-color: var(--card-text-color);
+            color: var(--card-bg-color);
+            border-color: var(--card-text-color);
+        }
+        
+        /* 高优先级任务卡片特殊样式 - 紫色实心边框 */
+        .tech-item.high-priority-task {
+            border: 1px solid #8b5cf6;
+            position: relative;
+        }
+        
+        /* 负责人视图中的高优先级任务突出显示 */
+        .owner-view-container .tech-item.high-priority-task {
+            background: var(--inner-card-bg-color);
+            border: 1px solid #8b5cf6;
+            margin-bottom: 1rem;
+        }
+        
+        .owner-view-container .tech-item.high-priority-task .item-summary {
+            background: var(--card-bg-color);
+            border-radius: 4px;
+        }
+        
+        /* 负责人高优先级任务信息 - 紫色背景白字 */
+        .owner-priority-info {
+            background: #8b5cf6;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.375rem;
+            margin: 0.5rem 0 1rem 0;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-align: center;
+            border: none;
+        }
+        
+        /* 编辑模式下有GitHub链接的项目 - 仅样式化GitHub链接本身 */
         .edit-mode .tech-item.has-github .source-link {
             background-color: #0d6b42 !important;
             color: white !important;
-            animation: github-glow 2s ease-in-out infinite alternate;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(13, 107, 66, 0.3);
         }
         
-        @keyframes github-glow {
-            from { 
-                box-shadow: 0 0 5px rgba(13, 107, 66, 0.5);
-                transform: scale(1);
-            }
-            to { 
-                box-shadow: 0 0 10px rgba(13, 107, 66, 0.8);
-                transform: scale(1.02);
-            }
-        }
         .owner-tag { background-color: #e9ecef; color: var(--subtle-text-color); }
         
         /* 编辑负责人按钮特殊样式 */
@@ -527,6 +560,18 @@
             .milestone-button:hover {
                 background-color: var(--primary-color);
             }
+            
+            .high-priority-btn:hover {
+                background-color: var(--subtle-text-color);
+                color: var(--card-bg-color);
+                transform: none;
+            }
+            
+            .high-priority-btn:active {
+                background-color: var(--card-text-color);
+                color: var(--card-bg-color);
+                transform: scale(0.95);
+            }
         }
 
         /* 控制面板样式 - 右下角 */
@@ -601,6 +646,21 @@
             background-color: #333;
         }
         
+        /* 待开发筛选hover */
+        #filter-switch.active:hover {
+            background-color: #805600;
+        }
+        
+        /* 高优先级筛选hover */
+        #high-priority-filter-switch.active:hover {
+            background-color: #7c3aed;
+        }
+        
+        /* 编辑模式hover保持原样 */
+        #toggle-switch.active:hover {
+            background-color: #333;
+        }
+        
         /* 移动端触摸优化 */
         @media (hover: none) and (pointer: coarse) {
             .toggle-switch:hover {
@@ -610,9 +670,39 @@
             .toggle-switch.active:hover {
                 background-color: var(--primary-color);
             }
+            
+            #filter-switch.active:hover {
+                background-color: #996a00;
+            }
+            
+            #high-priority-filter-switch.active:hover {
+                background-color: #8b5cf6;
+            }
+            
+            #toggle-switch.active:hover {
+                background-color: var(--primary-color);
+            }
         }
         
         .toggle-switch.active {
+            background-color: var(--primary-color);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        /* 待开发筛选 - 黄色 */
+        #filter-switch.active {
+            background-color: #996a00;
+            box-shadow: inset 0 1px 3px rgba(153, 106, 0, 0.3);
+        }
+        
+        /* 高优先级筛选 - 紫色 */
+        #high-priority-filter-switch.active {
+            background-color: #8b5cf6;
+            box-shadow: inset 0 1px 3px rgba(139, 92, 246, 0.3);
+        }
+        
+        /* 编辑模式保持原来的灰色 */
+        #toggle-switch.active {
             background-color: var(--primary-color);
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
         }
@@ -1005,20 +1095,119 @@
                 margin: 0 1rem;
                 min-width: auto;
                 max-width: calc(100vw - 2rem);
+                        }
+            
+            /* 移动端高优先级按钮优化 */
+            .high-priority-btn {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.4rem;
             }
             
-            /* 移动端GitHub链接项目样式调整 */
-            .edit-mode .tech-item.has-github {
-                border-width: 1px;
-                margin-bottom: 0.75rem;
+            .high-priority-btn:hover {
+                transform: none;
             }
             
-            .edit-mode .tech-item.has-github .item-summary {
-                padding: 0.5rem;
+            .high-priority-btn:active {
+                transform: scale(0.95);
             }
             
-            .edit-mode .tech-item.has-github .source-link {
-                animation: none; /* 移动端禁用动画，提升性能 */
+            .owner-priority-info {
+                margin: 0.25rem 0 0.5rem 0;
+                font-size: 0.75rem;
+                padding: 0.4rem 0.75rem;
+            }
+        }
+        
+        /* 底部水印样式 */
+        .footer-watermark {
+            text-align: center;
+            padding: 2rem 1rem 3rem;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .watermark-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-size: 0.8rem;
+            color: var(--subtle-text-color);
+            opacity: 0.8;
+        }
+        
+        .powered-by {
+            display: flex;
+            align-items: center;
+        }
+        
+        .powered-by strong {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+        
+        .divider {
+            opacity: 0.5;
+        }
+        
+        .github-link {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            color: var(--subtle-text-color);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+        }
+        
+        .github-link:hover {
+            color: var(--text-color);
+            background-color: rgba(255, 255, 255, 0.05);
+            transform: translateY(-1px);
+        }
+        
+        .github-link svg {
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+        
+        .github-link:hover svg {
+            opacity: 1;
+        }
+        
+        /* 移动端水印适配 */
+        @media (max-width: 768px) {
+            .footer-watermark {
+                padding: 1.5rem 1rem 4rem;
+                margin-top: 2rem;
+            }
+            
+            .watermark-content {
+                flex-direction: column;
+                gap: 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .divider {
+                display: none;
+            }
+            
+            .github-link {
+                padding: 0.5rem 1rem;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 0.5rem;
+            }
+        }
+        
+        /* 小屏幕水印优化 */
+        @media (max-width: 400px) {
+            .footer-watermark {
+                padding: 1rem 0.5rem 3.5rem;
+            }
+            
+            .watermark-content {
+                font-size: 0.7rem;
             }
         }
     </style>
@@ -1061,6 +1250,20 @@
                 <div class="owner-view-container"></div>
             </div>
         </main>
+        
+        <!-- 底部水印 -->
+        <footer class="footer-watermark">
+            <div class="watermark-content">
+                <span class="powered-by">Powered by&nbsp;&nbsp;<strong>Claude-4-Sonnet</strong></span>
+                <span class="divider">·</span>
+                <a href="https://github.com/molchip-tpr/molchip_ai_roadmap" target="_blank" class="github-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.374 0 0 5.373 0 12 0 17.302 3.438 21.8 8.207 23.387c.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub
+                </a>
+            </div>
+        </footer>
     </div>
     
     <!-- 控制面板 -->
@@ -1069,6 +1272,14 @@
         <div class="control-item">
             <span>仅显示待开发</span>
             <div class="toggle-switch" id="filter-switch">
+                <div class="toggle-slider"></div>
+            </div>
+        </div>
+        
+        <!-- 高优先级筛选Toggle -->
+        <div class="control-item">
+            <span>仅显示高优先级</span>
+            <div class="toggle-switch" id="high-priority-filter-switch">
                 <div class="toggle-slider"></div>
             </div>
         </div>
@@ -1158,6 +1369,10 @@
             
             // 筛选相关变量
             let isFilterActive = false;
+            let isHighPriorityFilterActive = false;
+            
+            // 临时存储高优先级数据（如果数据库字段不存在）
+            let localHighPriorityData = {};
             
             // 成功提示功能
             const showSuccessToast = (message) => {
@@ -1203,6 +1418,17 @@
                     filterSwitch.addEventListener('click', () => {
                         isFilterActive = !isFilterActive;
                         filterSwitch.classList.toggle('active');
+                        
+                        // 重新渲染视图
+                        buildRoadmapView(allProjects);
+                        buildOwnerView(allProjects);
+                    });
+                    
+                    // 高优先级筛选
+                    const highPriorityFilterSwitch = document.getElementById('high-priority-filter-switch');
+                    highPriorityFilterSwitch.addEventListener('click', () => {
+                        isHighPriorityFilterActive = !isHighPriorityFilterActive;
+                        highPriorityFilterSwitch.classList.toggle('active');
                         
                         // 重新渲染视图
                         buildRoadmapView(allProjects);
@@ -1329,6 +1555,7 @@
                             source: document.getElementById('create-source').value.trim() || null,
                             owner: owners,
                             milestones: [],
+                            high_priority_owners: [],
                             last_updated: new Date().toISOString()
                         };
                         
@@ -1713,6 +1940,167 @@
                             }
                         }
                     }
+                },
+                
+                // 高优先级任务管理
+                async toggleHighPriority(projectId, currentOwner) {
+                    if (!currentOwner) {
+                        alert('请先指定负责人才能设置高优先级任务');
+                        return;
+                    }
+                    
+                    const project = allProjects.find(p => p.id == projectId);
+                    if (!project) return;
+                    
+                    // 确保项目有这个负责人
+                    if (!project.owner || !project.owner.includes(currentOwner)) {
+                        alert('只有项目负责人才能设置高优先级');
+                        return;
+                    }
+                    
+                    // 初始化高优先级负责人数组
+                    if (!project.high_priority_owners) {
+                        project.high_priority_owners = [];
+                    }
+                    
+                    const isCurrentlyHighPriority = project.high_priority_owners.includes(currentOwner);
+                    
+                    if (isCurrentlyHighPriority) {
+                        // 取消高优先级
+                        project.high_priority_owners = project.high_priority_owners.filter(owner => owner !== currentOwner);
+                        showSuccessToast(`${currentOwner}的高优先级任务已取消`);
+                    } else {
+                        // 检查该负责人是否已经有其他高优先级任务
+                        const existingHighPriorityProject = allProjects.find(p => 
+                            p.id !== projectId && 
+                            p.high_priority_owners && 
+                            p.high_priority_owners.includes(currentOwner)
+                        );
+                        
+                        if (existingHighPriorityProject) {
+                            const shouldContinue = confirm(
+                                `${currentOwner}已经将"${existingHighPriorityProject.name}"标记为高优先级任务。\n\n` +
+                                `每个人只能有一个高优先级任务。\n\n` +
+                                `是否要将"${project.name}"设为新的高优先级任务？`
+                            );
+                            
+                            if (!shouldContinue) {
+                                return;
+                            }
+                            
+                            // 取消原来的高优先级
+                            existingHighPriorityProject.high_priority_owners = 
+                                existingHighPriorityProject.high_priority_owners.filter(owner => owner !== currentOwner);
+                            
+                            // 更新原项目的UI
+                            this.updateProjectHighPriorityUI(existingHighPriorityProject.id);
+                            
+                            // 同步数据库
+                            try {
+                                await supabase.from('projects').update({
+                                    high_priority_owners: existingHighPriorityProject.high_priority_owners,
+                                    last_updated: new Date().toISOString()
+                                }).eq('id', existingHighPriorityProject.id);
+                            } catch (error) {
+                                console.error('更新原高优先级任务失败:', error);
+                            }
+                        }
+                        
+                        // 设置新的高优先级
+                        project.high_priority_owners.push(currentOwner);
+                        showSuccessToast(`${currentOwner}的高优先级任务已设置为"${project.name}"`);
+                    }
+                    
+                    // 立即更新UI
+                    this.updateProjectHighPriorityUI(projectId);
+                    
+                    // 后台同步数据库
+                    try {
+                        console.log('尝试更新高优先级状态:', {
+                            projectId,
+                            high_priority_owners: project.high_priority_owners
+                        });
+                        
+                        const { data, error } = await supabase.from('projects').update({
+                            high_priority_owners: project.high_priority_owners,
+                            last_updated: new Date().toISOString()
+                        }).eq('id', projectId);
+                        
+                        if (error) {
+                            console.error('数据库更新错误详情:', error);
+                            throw error;
+                        }
+                        
+                        console.log('高优先级状态更新成功:', data);
+                        
+                        await supabase.from('meta').update({ 
+                            last_updated: new Date().toISOString() 
+                        }).eq('id', 1);
+                    } catch (error) {
+                        console.error('更新高优先级状态失败:', error);
+                        showSuccessToast(`更新失败: ${error.message || '请检查数据库字段是否存在'}`);
+                        
+                        // 提示用户检查控制台
+                        alert('高优先级更新失败，请打开浏览器控制台查看详细错误信息。\n\n可能的原因：\n1. 数据库表缺少 high_priority_owners 字段\n2. 字段类型不正确\n3. 权限问题');
+                    }
+                },
+                
+                // 更新项目的高优先级UI
+                updateProjectHighPriorityUI(projectId) {
+                    const project = allProjects.find(p => p.id == projectId);
+                    if (!project) return;
+                    
+                    const projectElements = document.querySelectorAll(`[data-project-id="${projectId}"]`);
+                    const hasHighPriority = project.high_priority_owners && project.high_priority_owners.length > 0;
+                    
+                    projectElements.forEach(projectEl => {
+                        // 更新卡片样式
+                        if (hasHighPriority) {
+                            projectEl.classList.add('high-priority-task');
+                        } else {
+                            projectEl.classList.remove('high-priority-task');
+                        }
+                        
+                        // 更新高优先级标签和按钮
+                        const tagsContainer = projectEl.querySelector('.tags-container');
+                        if (tagsContainer) {
+                            // 移除旧的高优先级标签
+                            const oldTags = tagsContainer.querySelectorAll('.high-priority-tag, .high-priority-btn');
+                            oldTags.forEach(tag => tag.remove());
+                            
+                            // 添加新的高优先级标签
+                            if (hasHighPriority) {
+                                const priorityTag = document.createElement('div');
+                                priorityTag.className = 'base-tag high-priority-tag';
+                                priorityTag.textContent = '高优先级';
+                                tagsContainer.appendChild(priorityTag);
+                            }
+                            
+                            // 添加高优先级按钮（编辑模式下）
+                            if (isEditMode && project.owner && project.owner.length > 0) {
+                                project.owner.forEach(owner => {
+                                    const isOwnerHighPriority = project.high_priority_owners && project.high_priority_owners.includes(owner);
+                                    const priorityBtn = document.createElement('div');
+                                    priorityBtn.className = `base-tag high-priority-btn ${isOwnerHighPriority ? 'active' : ''}`;
+                                    priorityBtn.textContent = owner;
+                                    priorityBtn.title = `点击${isOwnerHighPriority ? '取消' : '设置'}${owner}的高优先级任务`;
+                                    priorityBtn.onclick = (e) => {
+                                        e.stopPropagation();
+                                        EditManager.toggleHighPriority(projectId, owner);
+                                    };
+                                    tagsContainer.appendChild(priorityBtn);
+                                });
+                            }
+                        }
+                    });
+                },
+                
+                // 获取用户的高优先级任务
+                getUserHighPriorityTask(ownerName) {
+                    return allProjects.find(project => 
+                        project.high_priority_owners && 
+                        project.high_priority_owners.includes(ownerName)
+                    );
                 }
             };
             
@@ -1741,11 +2129,29 @@
                         ''
                     );
 
+                // 高优先级标签和按钮
+                const hasHighPriority = item.high_priority_owners && item.high_priority_owners.length > 0;
+                const highPriorityTags = hasHighPriority ? 
+                    `<div class="base-tag high-priority-tag">高优先级</div>` : '';
+                
+                // 编辑模式下的高优先级按钮
+                const highPriorityBtns = isEditMode && item.owner && item.owner.length > 0 ? 
+                    item.owner.map(owner => {
+                        const isOwnerHighPriority = item.high_priority_owners && item.high_priority_owners.includes(owner);
+                        return `<div class="base-tag high-priority-btn ${isOwnerHighPriority ? 'active' : ''}" 
+                                onclick="event.stopPropagation(); EditManager.toggleHighPriority(${item.id}, '${owner}')" 
+                                title="点击${isOwnerHighPriority ? '取消' : '设置'}${owner}的高优先级任务">
+                                ${owner}
+                            </div>`;
+                    }).join('') : '';
+
                 const detailsHtml = `
                     <div class="details">
                         <div class="details-content">
                             <div class="tags-container">
                                 ${ownerTags}
+                                ${highPriorityTags}
+                                ${highPriorityBtns}
                                 ${isEditMode ? `<span class="base-tag owner-tag edit-owner-btn" onclick="event.stopPropagation(); EditManager.editOwnerList(${item.id}, '${(item.owner || []).join(', ')}')" style="cursor: pointer !important; background-color: #e9ecef; position: relative; z-index: 20; border: 1px solid #ddd;">✏️ 编辑负责人</span>` : ''}
                             </div>
                             <ul class="timeline">
@@ -1774,7 +2180,10 @@
                 // 为有GitHub链接的项目添加特殊CSS类（仅在编辑模式下显示效果）
                 const hasGithubClass = item.source ? 'has-github' : '';
                 
-                return `<div class="tech-item ${hasGithubClass}" data-has-details="true" data-project-id="${item.id}"><div class="item-summary"><div class="item-header"><div class="tech-name editable-title">${item.name} ${sourceLink}</div>${statusTag}</div><div class="tech-desc editable-title">${item.description}</div>${deleteBtn}</div>${detailsHtml}</div>`;
+                // 为高优先级任务添加特殊CSS类
+                const highPriorityClass = hasHighPriority ? 'high-priority-task' : '';
+                
+                return `<div class="tech-item ${hasGithubClass} ${highPriorityClass}" data-has-details="true" data-project-id="${item.id}"><div class="item-summary"><div class="item-header"><div class="tech-name editable-title">${item.name} ${sourceLink}</div>${statusTag}</div><div class="tech-desc editable-title">${item.description}</div>${deleteBtn}</div>${detailsHtml}</div>`;
             };
             
             const addToggleListener = (item) => {
@@ -1830,8 +2239,21 @@
             const buildRoadmapView = (data) => {
                 allProjects = data; // 保存所有项目数据
                 
+                // 应用筛选条件
+                let filteredData = data;
+                
                 // 如果筛选激活，只显示待开发的项目
-                const filteredData = isFilterActive ? data.filter(item => item.status === 'dev') : data;
+                if (isFilterActive) {
+                    filteredData = filteredData.filter(item => item.status === 'dev');
+                }
+                
+                // 如果高优先级筛选激活，只显示高优先级项目
+                if (isHighPriorityFilterActive) {
+                    filteredData = filteredData.filter(item => 
+                        item.high_priority_owners && item.high_priority_owners.length > 0
+                    );
+                }
+                
                 const groupedData = filteredData.reduce((acc, item) => { (acc[item.category] = acc[item.category] || []).push(item); return acc; }, {});
                 roadmapContainer.innerHTML = '';
                 
@@ -1874,12 +2296,28 @@
             const buildOwnerView = (data) => {
                 allProjects = data; // 保存所有项目数据
                 
+                // 应用筛选条件
+                let filteredData = data;
+                
                 // 如果筛选激活，只显示待开发的项目
-                const filteredData = isFilterActive ? data.filter(item => item.status === 'dev') : data;
+                if (isFilterActive) {
+                    filteredData = filteredData.filter(item => item.status === 'dev');
+                }
+                
+                // 如果高优先级筛选激活，只显示高优先级项目
+                if (isHighPriorityFilterActive) {
+                    filteredData = filteredData.filter(item => 
+                        item.high_priority_owners && item.high_priority_owners.length > 0
+                    );
+                }
+                
                 const ownerTasks = {};
                 filteredData.forEach(item => {
                     if (item.owner && Array.isArray(item.owner)) {
-                        item.owner.forEach(ownerName => { if (!ownerTasks[ownerName]) ownerTasks[ownerName] = []; ownerTasks[ownerName].push({ ...item }); });
+                        item.owner.forEach(ownerName => { 
+                            if (!ownerTasks[ownerName]) ownerTasks[ownerName] = []; 
+                            ownerTasks[ownerName].push({ ...item }); 
+                        });
                     }
                 });
                 ownerContainer.innerHTML = '';
@@ -1888,10 +2326,27 @@
                     const group = document.createElement('div');
                     group.className = 'owner-group';
                     
+                    // 按高优先级排序（高优先级任务在前面）
+                    const sortedTasks = ownerTasks[ownerName].sort((a, b) => {
+                        const aIsHighPriority = a.high_priority_owners && a.high_priority_owners.includes(ownerName);
+                        const bIsHighPriority = b.high_priority_owners && b.high_priority_owners.includes(ownerName);
+                        
+                        if (aIsHighPriority && !bIsHighPriority) return -1;
+                        if (!aIsHighPriority && bIsHighPriority) return 1;
+                        return 0;
+                    });
+                    
                     const itemsContainer = document.createElement('div');
                     itemsContainer.className = 'tech-items';
-                    ownerTasks[ownerName].forEach(item => itemsContainer.insertAdjacentHTML('beforeend', createTechItemHTML(item)));
-                    group.innerHTML += `<h2 class="owner-name editable-title">${ownerName}</h2>`;
+                    
+                    // 先显示高优先级任务的统计
+                    const highPriorityTask = EditManager.getUserHighPriorityTask(ownerName);
+                    const highPriorityInfo = highPriorityTask ? 
+                        `<div class="owner-priority-info">高优先级：${highPriorityTask.name}</div>` : '';
+                    
+                    sortedTasks.forEach(item => itemsContainer.insertAdjacentHTML('beforeend', createTechItemHTML(item)));
+                    
+                    group.innerHTML += `<h2 class="owner-name editable-title">${ownerName}</h2>${highPriorityInfo}`;
                     group.appendChild(itemsContainer);
                     ownerContainer.appendChild(group);
                 });
@@ -2261,9 +2716,19 @@
                     const { data, error } = await supabase.from('projects').select('*').order('id');
                     if (error) throw error;
                     
+                    console.log('加载的项目数据:', data);
+                    
+                    // 为了兼容性，确保所有项目都有 high_priority_owners 字段
+                    const processedData = data.map(item => ({
+                        ...item,
+                        high_priority_owners: item.high_priority_owners || []
+                    }));
+                    
+                    console.log('处理后的项目数据:', processedData);
+                    
                     if(fullBuild) {
-                        buildRoadmapView(data);
-                        buildOwnerView(data);
+                        buildRoadmapView(processedData);
+                        buildOwnerView(processedData);
                     }
                     
                     addMilestoneListeners();
